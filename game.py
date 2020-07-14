@@ -33,22 +33,22 @@ class Player:
 		self.vx *= 0.5
 		self.vz *= 0.5
 		if keystat.FORWARD:
-			self.vx -= 0.01 * math.sin(ry/180*math.pi)
-			self.vz += 0.01 * math.cos(ry/180*math.pi)
+			self.vx -= 0.005 * math.sin(ry/180*math.pi)
+			self.vz += 0.005 * math.cos(ry/180*math.pi)
 		if keystat.BACK:
-			self.vx += 0.01 * math.sin(ry/180*math.pi)
-			self.vz -= 0.01 * math.cos(ry/180*math.pi)
+			self.vx += 0.005 * math.sin(ry/180*math.pi)
+			self.vz -= 0.005 * math.cos(ry/180*math.pi)
 		if keystat.LEFT:
-			self.vx += 0.01 * math.sin((ry+90)/180*math.pi)
-			self.vz -= 0.01 * math.cos((ry+90)/180*math.pi)
+			self.vx += 0.005 * math.sin((ry+90)/180*math.pi)
+			self.vz -= 0.005 * math.cos((ry+90)/180*math.pi)
 		if keystat.RIGHT:
-			self.vx -= 0.01 * math.sin((ry+90)/180*math.pi)
-			self.vz += 0.01 * math.cos((ry+90)/180*math.pi)
+			self.vx -= 0.005 * math.sin((ry+90)/180*math.pi)
+			self.vz += 0.005 * math.cos((ry+90)/180*math.pi)
 		if keystat.JUMP:
-			self.vy = 0.1
+			self.vy = 0.025
 			keystat.JUMP = False
 		else:
-			self.vy -= 0.005
+			self.vy -= 0.0003
 		
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
@@ -70,16 +70,6 @@ class Player:
 			self.vy = 0
 		if block[int(-self.x)][int(self.y)][int(-next_z)] == 0:
 			self.z = next_z
-		#self.y += self.vy
-		#if self.y < 0:
-		#	self.y = 0
-		
-		
-		"""self.x += self.vx
-		#if self.y > 0:
-		#	self.y += self.vy
-		self.y = 5*block_size
-		self.z += self.vz"""
 		
 		cnt_tick += 1
 
@@ -122,20 +112,13 @@ def gen_glList():
 		)
 	list_block = glGenLists(1)
 	glNewList(list_block, GL_COMPILE)
-	"""
-	for i in range(0, len(bf)):
-		glBegin(GL_QUADS)
-		glNormal3dv(bn[i])
-		for j in range(0, len(bf[i])):
-			glVertex3dv(bv[bf[i][j]])
-	glEnd()"""
 	
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (255,255,0))
 	#glMaterialfv(GL_FRONT, GL_AMBIENT, (255,255,0))
 	for i in range(0, len(bf)):
 		glBegin(GL_POLYGON)
 		glNormal3dv(bn[i])
-		for j in range(0, 4):
+		for j in range(0, len(bf[i])):
 			glVertex3dv(bv[bf[i][j]])
 		glEnd()
 	
@@ -143,7 +126,7 @@ def gen_glList():
 	for i in range(0, len(bf)):
 		glBegin(GL_LINE_LOOP)
 		glNormal3dv(bn[i])
-		for j in range(0, 4):
+		for j in range(0, len(bf[i])):
 			glVertex3dv(bv[bf[i][j]])
 		glEnd()
 	glEndList()
@@ -173,7 +156,6 @@ def render():
 				if block[i][j][k] == 1:
 					glPushMatrix()
 					glTranslated(block_size * (i), block_size * (j), block_size * (k))
-					glMaterialfv(GL_FRONT, GL_DIFFUSE, (128,255,0))
 					glCallList(list_block)
 					glPopMatrix()
 
@@ -184,7 +166,7 @@ def update():
 def scene():
 	render()
 
-def resize(window, width, height):
+def window_size_callback(window, width, height):
 	if height == 0:
 		return
 	set_view(width, height)
@@ -196,7 +178,7 @@ def set_view(width, height):
 	gluPerspective(30.0, width / height, 1.0, 100.0)
 	glMatrixMode(GL_MODELVIEW)
 
-def refresh(window):
+def window_refresh_callback(window):
 	display()
 
 def key_callback(window, key, scancode, action, mods):
@@ -231,6 +213,7 @@ def key_callback(window, key, scancode, action, mods):
 		# show mouse cursor
 		glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
 	if key == glfw.KEY_Q:
+		# close window
 		glfw.set_window_should_close(window, GL_TRUE)
 
 def cursor_pos_callback(window, xpos, ypos):
@@ -273,12 +256,8 @@ def main():
 		glfw.terminate()
 		return
 	
-	# hide mouse cursor
-	glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
-	#glfw.glfw_disable(glfw.GLFW_MOUSE_CURSOR) # deprecated?
-	
-	glfw.set_window_size_callback(window, resize)
-	glfw.set_window_refresh_callback(window, refresh)
+	glfw.set_window_size_callback(window, window_size_callback)
+	glfw.set_window_refresh_callback(window, window_refresh_callback)
 	glfw.set_key_callback(window, key_callback)
 	glfw.set_cursor_pos_callback(window, cursor_pos_callback)
 	glfw.set_mouse_button_callback(window, mouse_button_callback)
@@ -297,9 +276,7 @@ def main():
 
 	while not glfw.window_should_close(window):
 		glfw.poll_events()
-		#glfw.wait_events_timeout(1e-3)
 		update()
-		display()
 
 	glfw.terminate()
 
