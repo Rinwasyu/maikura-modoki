@@ -20,6 +20,8 @@ cursor_y = -1
 
 block_size = 1
 
+player_height = 2
+
 class Player:
 	def __init__(self, x, y, z):
 		self.x = x
@@ -53,23 +55,44 @@ class Player:
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
 		next_z = self.z + self.vz
-		if (-next_x) <= 0 or (-next_x) >= world_width:
+		if (-next_x) < 0 or (-next_x) >= world_width:
+			self.vx = 0
 			next_x = self.x
-		if (next_y) <= 0 or next_y >= world_heihgt:
+		if (next_y) < 0 or next_y + player_height >= world_heihgt:
+			self.vy = 0
 			next_y = self.y
-		if (-next_z) <= 0 or (-next_z) >= world_depth:
+		if (-next_z) < 0 or (-next_z) >= world_depth:
+			self.vz = 0
 			next_z = self.z
 		
+		is_in_front_of_face = False
 		if cnt_tick % 1000 == 0:
-			print(int(-next_x), ", ", int(self.y), ", ", int(-self.z))
-		if block[int(-next_x)][int(self.y)][int(-self.z)] == 0:
-			self.x = next_x
-		if block[int(-self.x)][int(next_y)][int(-self.z)] == 0:
-			self.y = next_y
+			print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
+		for i in [0, player_height-1]:
+			if block[int(-next_x)][int(self.y + i)][int(-self.z)] > 0:
+				self.vx = 0
+				next_x = self.x
+				if i == player_height-1:
+					is_in_front_of_face = True
+		for i in [0, player_height-1]:
+			if block[int(-next_x)][int(next_y + i)][int(-self.z)] > 0:
+				self.vy = 0
+				next_y = self.y
+		for i in [0, player_height-1]:
+			if block[int(-next_x)][int(next_y + i)][int(-next_z)] > 0:
+				self.vz = 0
+				next_z = self.z
+				if i == player_height-1:
+					is_in_front_of_face = True
+		
+		if is_in_front_of_face:
+			self.x += self.vx * 0.9
+			self.y += self.vy * 0.9
+			self.z += self.vz * 0.9
 		else:
-			self.vy = 0
-		if block[int(-self.x)][int(self.y)][int(-next_z)] == 0:
-			self.z = next_z
+			self.x += self.vx
+			self.y += self.vy
+			self.z += self.vz
 		
 		cnt_tick += 1
 
@@ -88,7 +111,7 @@ def display():
 	glLoadIdentity()
 	glRotated(rx, 1.0, 0.0, 0.0)
 	glRotated(ry, 0.0, 1.0, 0.0)
-	glTranslated(player.x * block_size, -player.y * block_size - 2, player.z * block_size)
+	glTranslated(player.x * block_size, (-player.y-player_height*0.9) * block_size, player.z * block_size)
 	glLightfv(GL_LIGHT0, GL_POSITION, (100,100,100,1))
 	scene()
 	menu()
@@ -139,12 +162,15 @@ def new_world():
 		for j in range(0, world_heihgt):
 			block[i].append([])
 			for k in range(0, world_depth):
-				if j < 2 or (j == 3 and i == 7 and k == 7) or (i + j < 6):
+				if j < 2 or (i + j < 6):
 					block[i][j].append(1)
 				else:
 					block[i][j].append(0)
 	for i in range(3, 6):
 		block[7][1][i] = 0
+	block[7][3][7] = 1
+	block[7][2][7] = 1
+	block[8][2][7] = 1
 	
 	global player
 	player = Player(-5, 4, -1)
@@ -175,7 +201,7 @@ def set_view(width, height):
 	glViewport(0, 0, width, height)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(30.0, width / height, 1.0, 100.0)
+	gluPerspective(30.0, width / height, 0.001, 50.0)
 	glMatrixMode(GL_MODELVIEW)
 
 def window_refresh_callback(window):
@@ -275,7 +301,8 @@ def main():
 	display()
 
 	while not glfw.window_should_close(window):
-		glfw.poll_events()
+		#glfw.poll_events()
+		glfw.wait_events_timeout(1e-3)
 		update()
 
 	glfw.terminate()
