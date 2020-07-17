@@ -19,6 +19,7 @@ cursor_x = -1
 cursor_y = -1
 
 block_size = 1
+block_color = ((0,0,0), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,255,255))
 
 player_height = 2
 
@@ -35,17 +36,17 @@ class Player:
 		self.vx *= 0.5
 		self.vz *= 0.5
 		if keystat.FORWARD:
-			self.vx -= 0.005 * math.sin(ry/180*math.pi)
-			self.vz += 0.005 * math.cos(ry/180*math.pi)
+			self.vx -= 0.007 * math.sin(ry/180*math.pi)
+			self.vz += 0.007 * math.cos(ry/180*math.pi)
 		if keystat.BACK:
-			self.vx += 0.005 * math.sin(ry/180*math.pi)
-			self.vz -= 0.005 * math.cos(ry/180*math.pi)
+			self.vx += 0.007 * math.sin(ry/180*math.pi)
+			self.vz -= 0.007 * math.cos(ry/180*math.pi)
 		if keystat.LEFT:
-			self.vx += 0.005 * math.sin((ry+90)/180*math.pi)
-			self.vz -= 0.005 * math.cos((ry+90)/180*math.pi)
+			self.vx += 0.007 * math.sin((ry+90)/180*math.pi)
+			self.vz -= 0.007 * math.cos((ry+90)/180*math.pi)
 		if keystat.RIGHT:
-			self.vx -= 0.005 * math.sin((ry+90)/180*math.pi)
-			self.vz += 0.005 * math.cos((ry+90)/180*math.pi)
+			self.vx -= 0.007 * math.sin((ry+90)/180*math.pi)
+			self.vz += 0.007 * math.cos((ry+90)/180*math.pi)
 		if keystat.JUMP:
 			self.vy = 0.025
 			keystat.JUMP = False
@@ -86,9 +87,9 @@ class Player:
 					is_in_front_of_face = True
 		
 		if is_in_front_of_face:
-			self.x += self.vx * 0.9
-			self.y += self.vy * 0.9
-			self.z += self.vz * 0.9
+			self.x += self.vx * 0.5
+			self.y += self.vy * 0.5
+			self.z += self.vz * 0.5
 		else:
 			self.x += self.vx
 			self.y += self.vy
@@ -136,8 +137,6 @@ def gen_glList():
 	list_block = glGenLists(1)
 	glNewList(list_block, GL_COMPILE)
 	
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, (255,255,0))
-	#glMaterialfv(GL_FRONT, GL_AMBIENT, (255,255,0))
 	for i in range(0, len(bf)):
 		glBegin(GL_POLYGON)
 		glNormal3dv(bn[i])
@@ -163,14 +162,14 @@ def new_world():
 			block[i].append([])
 			for k in range(0, world_depth):
 				if j < 2 or (i + j < 6):
-					block[i][j].append(1)
+					block[i][j].append(4)
 				else:
 					block[i][j].append(0)
 	for i in range(3, 6):
 		block[7][1][i] = 0
-	block[7][3][7] = 1
-	block[7][2][7] = 1
-	block[8][2][7] = 1
+	block[7][3][7] = 5
+	block[7][2][7] = 5
+	block[8][2][7] = 5
 	
 	global player
 	player = Player(-5, 4, -1)
@@ -179,9 +178,10 @@ def render():
 	for i in range(0, len(block)):
 		for j in range(0, len(block[i])):
 			for k in range(0, len(block[i][j])):
-				if block[i][j][k] == 1:
+				if block[i][j][k] > 0:
 					glPushMatrix()
 					glTranslated(block_size * (i), block_size * (j), block_size * (k))
+					glMaterialfv(GL_FRONT, GL_DIFFUSE, block_color[block[i][j][k]])
 					glCallList(list_block)
 					glPopMatrix()
 
@@ -237,6 +237,8 @@ def key_callback(window, key, scancode, action, mods):
 			print("player at (", int(player.x), ", ", int(player.y), ", ", int(player.z), ")")
 	if key == glfw.KEY_ESCAPE:
 		# show mouse cursor
+		cursor_x = -1
+		cursor_y = -1
 		glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
 	if key == glfw.KEY_Q:
 		# close window
