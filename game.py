@@ -22,6 +22,7 @@ block_size = 1
 block_color = ((0,0,0), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,255,255))
 
 player_height = 2
+player_speed = 0.005
 
 class Player:
 	def __init__(self, x, y, z):
@@ -36,17 +37,17 @@ class Player:
 		self.vx *= 0.5
 		self.vz *= 0.5
 		if keystat.FORWARD:
-			self.vx -= 0.007 * math.sin(ry/180*math.pi)
-			self.vz += 0.007 * math.cos(ry/180*math.pi)
+			self.vx -= player_speed * math.sin(ry/180*math.pi)
+			self.vz += player_speed * math.cos(ry/180*math.pi)
 		if keystat.BACK:
-			self.vx += 0.007 * math.sin(ry/180*math.pi)
-			self.vz -= 0.007 * math.cos(ry/180*math.pi)
+			self.vx += player_speed * math.sin(ry/180*math.pi)
+			self.vz -= player_speed * math.cos(ry/180*math.pi)
 		if keystat.LEFT:
-			self.vx += 0.007 * math.sin((ry+90)/180*math.pi)
-			self.vz -= 0.007 * math.cos((ry+90)/180*math.pi)
+			self.vx += player_speed * math.sin((ry+90)/180*math.pi)
+			self.vz -= player_speed * math.cos((ry+90)/180*math.pi)
 		if keystat.RIGHT:
-			self.vx -= 0.007 * math.sin((ry+90)/180*math.pi)
-			self.vz += 0.007 * math.cos((ry+90)/180*math.pi)
+			self.vx -= player_speed * math.sin((ry+90)/180*math.pi)
+			self.vz += player_speed * math.cos((ry+90)/180*math.pi)
 		if keystat.JUMP:
 			self.vy = 0.025
 			keystat.JUMP = False
@@ -66,7 +67,7 @@ class Player:
 			self.vz = 0
 			next_z = self.z
 		
-		is_in_front_of_face = False
+		block_is_in_front_of_face = False
 		if cnt_tick % 1000 == 0:
 			print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
 		for i in [0, player_height-1]:
@@ -74,7 +75,7 @@ class Player:
 				self.vx = 0
 				next_x = self.x
 				if i == player_height-1:
-					is_in_front_of_face = True
+					block_is_in_front_of_face = True
 		for i in [0, player_height-1]:
 			if block[int(-next_x)][int(next_y + i)][int(-self.z)] > 0:
 				self.vy = 0
@@ -84,9 +85,9 @@ class Player:
 				self.vz = 0
 				next_z = self.z
 				if i == player_height-1:
-					is_in_front_of_face = True
+					block_is_in_front_of_face = True
 		
-		if is_in_front_of_face:
+		if block_is_in_front_of_face:
 			self.x += self.vx * 0.5
 			self.y += self.vy * 0.5
 			self.z += self.vz * 0.5
@@ -201,7 +202,7 @@ def set_view(width, height):
 	glViewport(0, 0, width, height)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(30.0, width / height, 0.001, 50.0)
+	gluPerspective(50, width / height, 0.001, 50.0)
 	glMatrixMode(GL_MODELVIEW)
 
 def window_refresh_callback(window):
@@ -209,43 +210,37 @@ def window_refresh_callback(window):
 
 def key_callback(window, key, scancode, action, mods):
 	global keystat
-	if key == glfw.KEY_UP or key == glfw.KEY_W:
-		if action == glfw.PRESS:
+	if action == glfw.PRESS:
+		if key == glfw.KEY_UP or key == glfw.KEY_W:
 			keystat.FORWARD = True
-		elif action == glfw.RELEASE:
-			keystat.FORWARD = False
-	if key == glfw.KEY_DOWN or key == glfw.KEY_S:
-		if action == glfw.PRESS:
+		elif key == glfw.KEY_DOWN or key == glfw.KEY_S:
 			keystat.BACK = True
-		elif action == glfw.RELEASE:
-			keystat.BACK = False
-	if key == glfw.KEY_LEFT or key == glfw.KEY_A:
-		if action == glfw.PRESS:
+		elif key == glfw.KEY_LEFT or key == glfw.KEY_A:
 			keystat.LEFT = True
-		elif action == glfw.RELEASE:
-			keystat.LEFT = False
-	if key == glfw.KEY_RIGHT or key == glfw.KEY_D:
-		if action == glfw.PRESS:
+		elif key == glfw.KEY_RIGHT or key == glfw.KEY_D:
 			keystat.RIGHT = True
-		elif action == glfw.RELEASE:
-			keystat.RIGHT = False
-	if key == glfw.KEY_SPACE:
-		if action == glfw.PRESS:
+		elif key == glfw.KEY_SPACE:
 			keystat.JUMP = True
-	if key == glfw.KEY_P:
-		if action == glfw.RELEASE:
+		elif key == glfw.KEY_P: # For debugging
 			print("player at (", int(player.x), ", ", int(player.y), ", ", int(player.z), ")")
-	if key == glfw.KEY_ESCAPE:
-		# show mouse cursor
-		cursor_x = -1
-		cursor_y = -1
-		glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
-	if key == glfw.KEY_Q:
-		# close window
-		glfw.set_window_should_close(window, GL_TRUE)
+		elif key == glfw.KEY_ESCAPE: # show mouse cursor
+			cursor_x = -1
+			cursor_y = -1
+			glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
+		elif key == glfw.KEY_Q: # close window
+			glfw.set_window_should_close(window, GL_TRUE)
+	elif action == glfw.RELEASE:
+		if key == glfw.KEY_UP or key == glfw.KEY_W:
+			keystat.FORWARD = False
+		elif key == glfw.KEY_DOWN or key == glfw.KEY_S:
+			keystat.BACK = False
+		elif key == glfw.KEY_LEFT or key == glfw.KEY_A:
+			keystat.LEFT = False
+		elif key == glfw.KEY_RIGHT or key == glfw.KEY_D:
+			keystat.RIGHT = False
 
 def cursor_pos_callback(window, xpos, ypos):
-	print("cursor_pos : ", xpos, ", ", ypos)
+	# print("cursor_pos : ", xpos, ", ", ypos)
 	global rx, ry, cursor_x, cursor_y
 	if cursor_x == -1:
 		cursor_x = xpos
