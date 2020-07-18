@@ -1,3 +1,8 @@
+# MIT License
+# Copyright (c) 2020 Rinwasyu
+# 
+# https://github.com/Rinwasyu/maikura-modoki
+
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
