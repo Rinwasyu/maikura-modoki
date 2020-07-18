@@ -6,7 +6,7 @@ import math
 
 cnt_tick = 0
 ry = 0
-rx = 0
+rx = 90
 
 window_width = 800
 window_height = 600
@@ -19,7 +19,7 @@ cursor_x = -1
 cursor_y = -1
 
 block_size = 1
-block_color = ((0,0,0), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,255,255))
+block_color = ((0,0,0,0), (1,0,0,1), (0,1,0,1), (0,0,1,1), (1,1,0,1), (1,0,1,1), (0,1,1,1), (1,1,1,1))
 
 player_height = 2
 player_speed = 0.005
@@ -34,6 +34,11 @@ class Player:
 		self.vz = 0
 	def tick(self):
 		global keystat, cnt_tick
+		
+		# out of range
+		if -self.x < 0 or self.y < 0 or -self.z < 0 or self.x >= world_width or self.y >= world_heihgt or self.z >= world_depth:
+			return
+		
 		self.vx *= 0.5
 		self.vz *= 0.5
 		if keystat.FORWARD:
@@ -114,7 +119,14 @@ def display():
 	glRotated(rx, 1.0, 0.0, 0.0)
 	glRotated(ry, 0.0, 1.0, 0.0)
 	glTranslated(player.x * block_size, (-player.y-player_height*0.9) * block_size, player.z * block_size)
-	glLightfv(GL_LIGHT0, GL_POSITION, (100,100,100,1))
+	glLightfv(GL_LIGHT0, GL_POSITION, (100,80,100,1))
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0))
+	glLightfv(GL_LIGHT0, GL_AMBIENT, (0.3, 0.3, 0.3, 0.3))
+	glLightfv(GL_LIGHT0, GL_SPECULAR, (0.1, 0.1, 0.1, 1.0))
+	glLightfv(GL_LIGHT1, GL_POSITION, (100,100,-60,1))
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.2, 0.2, 0.2, 0.2))
+	glLightfv(GL_LIGHT1, GL_AMBIENT, (0, 0, 0, 0))
+	glLightfv(GL_LIGHT1, GL_SPECULAR, (0, 0, 0, 0))
 	scene()
 	menu()
 	glFlush()
@@ -173,22 +185,25 @@ def new_world():
 	block[8][2][7] = 5
 	
 	global player
-	player = Player(-5, 4, -1)
+	player = Player(-4, 5, -5)
 
 def render():
 	for i in range(0, len(block)):
 		for j in range(0, len(block[i])):
 			for k in range(0, len(block[i][j])):
 				if block[i][j][k] > 0:
+					color = block_color[block[i][j][k]]
 					glPushMatrix()
 					glTranslated(block_size * (i), block_size * (j), block_size * (k))
-					glMaterialfv(GL_FRONT, GL_DIFFUSE, block_color[block[i][j][k]])
+					glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
+					glMaterialfv(GL_FRONT, GL_AMBIENT, (color[0]*0.2, color[1]*0.2, color[2]*0.2, 0.2))
 					glCallList(list_block)
 					glPopMatrix()
 
 def update():
 	player.tick()
-	display()
+	if cnt_tick % 2 == 0:
+		display()
 
 def scene():
 	render()
@@ -202,7 +217,7 @@ def set_view(width, height):
 	glViewport(0, 0, width, height)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(50, width / height, 0.001, 50.0)
+	gluPerspective(50, width / height, 0.001, 100.0)
 	glMatrixMode(GL_MODELVIEW)
 
 def window_refresh_callback(window):
@@ -289,8 +304,10 @@ def main():
 	glClearColor(1.0, 1.0, 1.0, 1.0)
 	glEnable(GL_DEPTH_TEST)
 	glEnable(GL_CULL_FACE)
+	glCullFace(GL_BACK)
 	glEnable(GL_LIGHTING)
 	glEnable(GL_LIGHT0)
+	glEnable(GL_LIGHT1)
 	
 	init()
 	
