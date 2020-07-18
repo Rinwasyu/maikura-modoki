@@ -12,7 +12,7 @@ window_width = 800
 window_height = 600
 
 world_width = 10
-world_heihgt = 10
+world_heihgt = 50
 world_depth = 10
 
 cursor_x = -1
@@ -73,8 +73,8 @@ class Player:
 			next_z = self.z
 		
 		block_is_in_front_of_face = False
-		if cnt_tick % 1000 == 0:
-			print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
+		#if cnt_tick % 1000 == 0:
+		#	print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
 		for i in [0, player_height-1]:
 			if block[int(-next_x)][int(self.y + i)][int(-self.z)] > 0:
 				self.vx = 0
@@ -166,6 +166,35 @@ def gen_glList():
 		glEnd()
 	glEndList()
 
+def create_block():
+	print("viewing from (", player.x, ",", (player.y + player_height*0.9), ",", player.z, ")")
+	print("rx : ", rx, ", ry : ", ry)
+	x = player.x
+	y = player.y + player_height*0.9
+	z = player.z
+	step = 0.01
+	distance_limit = 50
+	distance = 0
+	while distance <= distance_limit:
+		distance += step
+		bx = x
+		by = y
+		bz = z
+		x -= math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		y -= math.sin(rx/180*math.pi) * step
+		z += math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		print("(", x, ",", y, ",", z, ")")
+		if -x < 0 or -x >= world_width or y < 0 or y >= world_heihgt or -z < 0 or -z >= world_depth:
+			return
+		if block[int(-x)][int(y)][int(-z)] > 0:
+			print("hit : (", int(-x), ", ", int(y), ", ", int(-z), ")")
+			if int(-player.x) == int(-bx) and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0 and int(-player.z) == int(-bz):
+				return
+			else:
+				block[int(-bx)][int(by)][int(-bz)] = 1
+				print("created! (", int(-bx), ",", int(by), ",", int(-bz), ")")
+			return
+
 def new_world():
 	global block
 	block = []
@@ -185,7 +214,7 @@ def new_world():
 	block[8][2][7] = 5
 	
 	global player
-	player = Player(-4, 5, -5)
+	player = Player(-4.5, 5, -5.5)
 
 def render():
 	for i in range(0, len(block)):
@@ -238,6 +267,9 @@ def key_callback(window, key, scancode, action, mods):
 			keystat.JUMP = True
 		elif key == glfw.KEY_P: # For debugging
 			print("player at (", int(player.x), ", ", int(player.y), ", ", int(player.z), ")")
+		elif key == glfw.KEY_R:
+			# recreate the world
+			new_world()
 		elif key == glfw.KEY_ESCAPE: # show mouse cursor
 			cursor_x = -1
 			cursor_y = -1
@@ -262,9 +294,9 @@ def cursor_pos_callback(window, xpos, ypos):
 		cursor_y = ypos
 		return
 	if xpos > cursor_x:
-		ry += (xpos - cursor_x) * 0.5
+		ry = (ry + (xpos - cursor_x) * 0.5) % 360
 	elif xpos < cursor_x:
-		ry -= (cursor_x - xpos) * 0.5
+		ry = (ry - (cursor_x - xpos) * 0.5 + 360) % 360
 	if ypos > cursor_y and rx < 90:
 		rx += (ypos - cursor_y) * 0.5
 	elif ypos < cursor_y and rx > -90:
@@ -274,7 +306,15 @@ def cursor_pos_callback(window, xpos, ypos):
 
 def mouse_button_callback(window, button, action, mods):
 	# hide mouse cursor
-	glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+	if glfw.get_input_mode(window, glfw.CURSOR) == glfw.CURSOR_NORMAL:
+		print("hide mouse cursor")
+		glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+		return
+	
+	if action == glfw.PRESS:
+		if button == glfw.MOUSE_BUTTON_RIGHT:
+			create_block()
+	
 	return
 
 def init():
