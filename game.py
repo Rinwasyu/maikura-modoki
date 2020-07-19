@@ -139,6 +139,17 @@ def display():
 	glFlush()
 
 def menu():
+	glPushMatrix()
+	x = -player.x + math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
+	y = (player.y+player_height*0.9) - math.sin(rx/180*math.pi) * 0.1
+	z = -player.z - math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
+	glTranslated(x * block_size, y * block_size, z * block_size)
+	glRotated(-ry, 0, 1, 0)
+	glRotated(-rx, 1, 0, 0)
+	glCallList(list_plus)
+	#if cnt_tick % 100 == 0:
+	#	print("rx:", rx, "ry:", ry, "(", x, ",", y, ",", z, ")")
+	glPopMatrix()
 	return
 
 def gen_glList():
@@ -172,6 +183,27 @@ def gen_glList():
 			glVertex3dv(bv[bf[i][j]])
 		glEnd()
 	glEndList()
+	
+	# "+"
+	global list_plus
+	list_plus = glGenLists(1)
+	glNewList(list_plus, GL_COMPILE)
+	pv = (
+			(0.0001,-0.0001,0), (0.001,-0.0001,0), (0.001,0.0001,0), (0.0001,0.0001,0),
+			(0.0001,0.001,0), (-0.0001,0.001,0), (-0.0001,0.0001,0), (-0.001,0.0001,0),
+			(-0.001,-0.0001,0), (-0.0001,-0.0001,0), (-0.0001,-0.001,0), (0.0001,-0.001,0)
+		)
+	pf = (
+			(0, 1, 2, 3), (3, 4, 5, 6), (6, 7, 8, 9), (9, 10, 11, 0)
+		)
+	glMaterialfv(GL_FRONT, GL_EMISSION, (1,1,1,1))
+	glBegin(GL_POLYGON)
+	for i in range(0, len(pf)):
+		for j in range(0, len(pf[i])):
+			glVertex3dv(pv[pf[i][j]])
+	glEnd()
+	glMaterialfv(GL_FRONT, GL_EMISSION, (0,0,0,0))
+	glEndList()
 
 def create_block():
 	print("viewing from (", player.x, ",", (player.y + player_height*0.9), ",", player.z, ")")
@@ -190,7 +222,7 @@ def create_block():
 		x -= math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		y -= math.sin(rx/180*math.pi) * step
 		z += math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-		print("(", x, ",", y, ",", z, ")")
+		# print("(", x, ",", y, ",", z, ")")
 		if -x < 0 or -x >= world_width or y < 0 or y >= world_heihgt or -z < 0 or -z >= world_depth:
 			return
 		if block[int(-x)][int(y)][int(-z)] > 0:
@@ -214,7 +246,7 @@ def remove_block():
 		x -= math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		y -= math.sin(rx/180*math.pi) * step
 		z += math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-		print("(", x, ",", y, ",", z, ")")
+		# print("(", x, ",", y, ",", z, ")")
 		if -x < 0 or -x >= world_width or y < 0 or y >= world_heihgt or -z < 0 or -z >= world_depth:
 			return
 		if block[int(-x)][int(y)][int(-z)] > 0:
