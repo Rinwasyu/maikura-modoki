@@ -73,6 +73,8 @@ class Player:
 		if (next_y) < 0 or next_y + player_height >= world_heihgt:
 			self.vy = 0
 			next_y = self.y
+			# next_y += world_heihgt-player_height
+			# self.y = next_y
 		if (-next_z) < 0 or (-next_z) >= world_depth:
 			self.vz = 0
 			next_z = self.z
@@ -177,7 +179,7 @@ def create_block():
 	x = player.x
 	y = player.y + player_height*0.9
 	z = player.z
-	step = 0.01
+	step = 0.1
 	distance_limit = 50
 	distance = 0
 	while distance <= distance_limit:
@@ -198,6 +200,26 @@ def create_block():
 			else:
 				block[int(-bx)][int(by)][int(-bz)] = 1
 				print("created! (", int(-bx), ",", int(by), ",", int(-bz), ")")
+			return
+
+def remove_block():
+	x = player.x
+	y = player.y + player_height*0.9
+	z = player.z
+	step = 0.1
+	distance_limit = 50
+	distance = 0
+	while distance <= distance_limit:
+		distance += step
+		x -= math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		y -= math.sin(rx/180*math.pi) * step
+		z += math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		print("(", x, ",", y, ",", z, ")")
+		if -x < 0 or -x >= world_width or y < 0 or y >= world_heihgt or -z < 0 or -z >= world_depth:
+			return
+		if block[int(-x)][int(y)][int(-z)] > 0:
+			block[int(-x)][int(y)][int(-z)] = 0
+			print("removed (", int(-x), ",", int(y), ",", int(-z), ")")
 			return
 
 def new_world():
@@ -317,6 +339,8 @@ def mouse_button_callback(window, button, action, mods):
 		return
 	
 	if action == glfw.PRESS:
+		if button == glfw.MOUSE_BUTTON_LEFT:
+			remove_block()
 		if button == glfw.MOUSE_BUTTON_RIGHT:
 			create_block()
 	
