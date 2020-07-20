@@ -41,23 +41,23 @@ class Player:
 		global keystat, cnt_tick
 		
 		# out of range
-		if -self.x < 0 or self.y < 0 or -self.z < 0 or self.x >= world_width or self.y >= world_heihgt or self.z >= world_depth:
+		if self.x < 0 or self.y < 0 or self.z < 0 or self.x >= world_width or self.y >= world_heihgt or self.z >= world_depth:
 			return
 		
 		self.vx *= 0.5
 		self.vz *= 0.5
 		if keystat.FORWARD:
-			self.vx -= player_speed * math.sin(ry/180*math.pi)
-			self.vz += player_speed * math.cos(ry/180*math.pi)
-		if keystat.BACK:
 			self.vx += player_speed * math.sin(ry/180*math.pi)
 			self.vz -= player_speed * math.cos(ry/180*math.pi)
+		if keystat.BACK:
+			self.vx -= player_speed * math.sin(ry/180*math.pi)
+			self.vz += player_speed * math.cos(ry/180*math.pi)
 		if keystat.LEFT:
-			self.vx += player_speed * math.sin((ry+90)/180*math.pi)
-			self.vz -= player_speed * math.cos((ry+90)/180*math.pi)
-		if keystat.RIGHT:
 			self.vx -= player_speed * math.sin((ry+90)/180*math.pi)
 			self.vz += player_speed * math.cos((ry+90)/180*math.pi)
+		if keystat.RIGHT:
+			self.vx += player_speed * math.sin((ry+90)/180*math.pi)
+			self.vz -= player_speed * math.cos((ry+90)/180*math.pi)
 		if keystat.JUMP:
 			self.vy = 0.025
 			keystat.JUMP = False
@@ -67,15 +67,15 @@ class Player:
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
 		next_z = self.z + self.vz
-		if (-next_x) < 0 or (-next_x) >= world_width:
+		if next_x < 0 or next_x >= world_width:
 			self.vx = 0
 			next_x = self.x
-		if (next_y) < 0 or next_y + player_height >= world_heihgt:
+		if next_y < 0 or next_y + player_height >= world_heihgt:
 			self.vy = 0
 			next_y = self.y
 			# next_y += world_heihgt-player_height
 			# self.y = next_y
-		if (-next_z) < 0 or (-next_z) >= world_depth:
+		if next_z < 0 or next_z >= world_depth:
 			self.vz = 0
 			next_z = self.z
 		
@@ -83,17 +83,17 @@ class Player:
 		#if cnt_tick % 1000 == 0:
 		#	print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
 		for i in [0, player_height-1]:
-			if block[int(-next_x)][int(self.y + i)][int(-self.z)] > 0:
+			if block[int(next_x)][int(self.y + i)][int(self.z)] > 0:
 				self.vx = 0
 				next_x = self.x
 				if i == player_height-1:
 					block_is_in_front_of_face = True
 		for i in [0, player_height-1]:
-			if block[int(-next_x)][int(next_y + i)][int(-self.z)] > 0:
+			if block[int(next_x)][int(next_y + i)][int(self.z)] > 0:
 				self.vy = 0
 				next_y = self.y
 		for i in [0, player_height-1]:
-			if block[int(-next_x)][int(next_y + i)][int(-next_z)] > 0:
+			if block[int(next_x)][int(next_y + i)][int(next_z)] > 0:
 				self.vz = 0
 				next_z = self.z
 				if i == player_height-1:
@@ -125,7 +125,7 @@ def display():
 	glLoadIdentity()
 	glRotated(rx, 1.0, 0.0, 0.0)
 	glRotated(ry, 0.0, 1.0, 0.0)
-	glTranslated(player.x * block_size, (-player.y-player_height*0.9) * block_size, player.z * block_size)
+	glTranslated(-player.x * block_size, (-player.y-player_height*0.9) * block_size, -player.z * block_size)
 	glLightfv(GL_LIGHT0, GL_POSITION, (100,80,100,1))
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0))
 	glLightfv(GL_LIGHT0, GL_AMBIENT, (0.3, 0.3, 0.3, 0.3))
@@ -140,9 +140,9 @@ def display():
 
 def menu():
 	glPushMatrix()
-	x = -player.x + math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
+	x = player.x + math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
 	y = (player.y+player_height*0.9) - math.sin(rx/180*math.pi) * 0.1
-	z = -player.z - math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
+	z = player.z - math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
 	glTranslated(x * block_size, y * block_size, z * block_size)
 	glRotated(-ry, 0, 1, 0)
 	glRotated(-rx, 1, 0, 0)
@@ -219,19 +219,19 @@ def create_block():
 		bx = x
 		by = y
 		bz = z
-		x -= math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		x += math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		y -= math.sin(rx/180*math.pi) * step
-		z += math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		# print("(", x, ",", y, ",", z, ")")
-		if -x < 0 or -x >= world_width or y < 0 or y >= world_heihgt or -z < 0 or -z >= world_depth:
+		if x < 0 or x >= world_width or y < 0 or y >= world_heihgt or z < 0 or z >= world_depth:
 			return
-		if block[int(-x)][int(y)][int(-z)] > 0:
+		if block[int(x)][int(y)][int(z)] > 0:
 			print("hit : (", int(-x), ", ", int(y), ", ", int(-z), ")")
-			if int(-player.x) == int(-bx) and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0 and int(-player.z) == int(-bz):
+			if int(player.x) == int(bx) and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0 and int(player.z) == int(bz):
 				return
 			else:
-				block[int(-bx)][int(by)][int(-bz)] = 1
-				print("created! (", int(-bx), ",", int(by), ",", int(-bz), ")")
+				block[int(bx)][int(by)][int(bz)] = 1
+				print("created! (", int(bx), ",", int(by), ",", int(bz), ")")
 			return
 
 def remove_block():
@@ -243,15 +243,15 @@ def remove_block():
 	distance = 0
 	while distance <= distance_limit:
 		distance += step
-		x -= math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		x += math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		y -= math.sin(rx/180*math.pi) * step
-		z += math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		# print("(", x, ",", y, ",", z, ")")
-		if -x < 0 or -x >= world_width or y < 0 or y >= world_heihgt or -z < 0 or -z >= world_depth:
+		if x < 0 or x >= world_width or y < 0 or y >= world_heihgt or z < 0 or z >= world_depth:
 			return
-		if block[int(-x)][int(y)][int(-z)] > 0:
-			block[int(-x)][int(y)][int(-z)] = 0
-			print("removed (", int(-x), ",", int(y), ",", int(-z), ")")
+		if block[int(x)][int(y)][int(z)] > 0:
+			block[int(x)][int(y)][int(z)] = 0
+			print("removed (", int(x), ",", int(y), ",", int(z), ")")
 			return
 
 def new_world():
@@ -273,7 +273,7 @@ def new_world():
 	block[8][2][7] = 5
 	
 	global player
-	player = Player(-4.5, 5, -5.5)
+	player = Player(4.5, 5, 5.5)
 
 def render():
 	for i in range(0, len(block)):
