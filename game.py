@@ -80,7 +80,6 @@ class Player:
 			self.vz = 0
 			next_z = self.z
 		
-		block_is_in_front_of_face = False
 		#if cnt_tick % 1000 == 0:
 		#	print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
 		for i in [0, player_height-1]:
@@ -88,8 +87,6 @@ class Player:
 				if block[int(next_x+j)][int(self.y + i)][int(self.z + j)] > 0:
 					self.vx = 0
 					next_x = self.x
-					if i == player_height-1:
-						block_is_in_front_of_face = True
 		for i in [0, player_height-1]:
 			for j in [-player_radius, player_radius]:
 				if block[int(next_x + j)][int(next_y + i)][int(self.z + j)] > 0:
@@ -100,8 +97,6 @@ class Player:
 				if block[int(next_x + j)][int(next_y + i)][int(next_z + j)] > 0:
 					self.vz = 0
 					next_z = self.z
-					if i == player_height-1:
-						block_is_in_front_of_face = True
 		
 		self.x += self.vx
 		self.y += self.vy
@@ -205,8 +200,8 @@ def gen_glList():
 	glEndList()
 
 def create_block():
-	print("viewing from (", player.x, ",", (player.y + player_height*0.9), ",", player.z, ")")
-	print("rx : ", rx, ", ry : ", ry)
+	# print("viewing from (", player.x, ",", (player.y + player_height*0.9), ",", player.z, ")")
+	# print("rx : ", rx, ", ry : ", ry)
 	x = player.x
 	y = player.y + player_height*0.9
 	z = player.z
@@ -225,7 +220,7 @@ def create_block():
 		if x < 0 or x >= world_width or y < 0 or y >= world_heihgt or z < 0 or z >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
-			print("hit : (", int(-x), ", ", int(y), ", ", int(-z), ")")
+			# print("hit : (", int(-x), ", ", int(y), ", ", int(-z), ")")
 			if int(player.x) == int(bx) and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0 and int(player.z) == int(bz):
 				return
 			else:
