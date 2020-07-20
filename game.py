@@ -28,6 +28,7 @@ block_color = ((0,0,0,0), (1,0,0,1), (0,1,0,1), (0,0,1,1), (1,1,0,1), (1,0,1,1),
 
 player_height = 2
 player_speed = 0.005
+player_radius = 0.1
 
 class Player:
 	def __init__(self, x, y, z):
@@ -67,7 +68,7 @@ class Player:
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
 		next_z = self.z + self.vz
-		if next_x < 0 or next_x >= world_width:
+		if next_x - player_radius < 0 or next_x + player_radius >= world_width:
 			self.vx = 0
 			next_x = self.x
 		if next_y < 0 or next_y + player_height >= world_heihgt:
@@ -75,7 +76,7 @@ class Player:
 			next_y = self.y
 			# next_y += world_heihgt-player_height
 			# self.y = next_y
-		if next_z < 0 or next_z >= world_depth:
+		if next_z - player_radius < 0 or next_z + player_radius >= world_depth:
 			self.vz = 0
 			next_z = self.z
 		
@@ -83,30 +84,28 @@ class Player:
 		#if cnt_tick % 1000 == 0:
 		#	print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
 		for i in [0, player_height-1]:
-			if block[int(next_x)][int(self.y + i)][int(self.z)] > 0:
-				self.vx = 0
-				next_x = self.x
-				if i == player_height-1:
-					block_is_in_front_of_face = True
+			for j in [-player_radius, player_radius]:
+				if block[int(next_x+j)][int(self.y + i)][int(self.z + j)] > 0:
+					self.vx = 0
+					next_x = self.x
+					if i == player_height-1:
+						block_is_in_front_of_face = True
 		for i in [0, player_height-1]:
-			if block[int(next_x)][int(next_y + i)][int(self.z)] > 0:
-				self.vy = 0
-				next_y = self.y
+			for j in [-player_radius, player_radius]:
+				if block[int(next_x + j)][int(next_y + i)][int(self.z + j)] > 0:
+					self.vy = 0
+					next_y = self.y
 		for i in [0, player_height-1]:
-			if block[int(next_x)][int(next_y + i)][int(next_z)] > 0:
-				self.vz = 0
-				next_z = self.z
-				if i == player_height-1:
-					block_is_in_front_of_face = True
+			for j in [-player_radius, player_radius]:
+				if block[int(next_x + j)][int(next_y + i)][int(next_z + j)] > 0:
+					self.vz = 0
+					next_z = self.z
+					if i == player_height-1:
+						block_is_in_front_of_face = True
 		
-		if block_is_in_front_of_face:
-			self.x += self.vx * 0.5
-			self.y += self.vy * 0.5
-			self.z += self.vz * 0.5
-		else:
-			self.x += self.vx
-			self.y += self.vy
-			self.z += self.vz
+		self.x += self.vx
+		self.y += self.vy
+		self.z += self.vz
 		
 		cnt_tick += 1
 
