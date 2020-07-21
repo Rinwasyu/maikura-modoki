@@ -29,6 +29,7 @@ block_color = ((0,0,0,0), (1,0,0,1), (0,1,0,1), (0,0,1,1), (1,1,0,1), (1,0,1,1),
 player_height = 2
 player_speed = 0.005
 player_radius = 0.1
+player_holding = 1
 
 class Player:
 	def __init__(self, x, y, z):
@@ -224,7 +225,7 @@ def create_block():
 			if int(player.x) == int(bx) and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0 and int(player.z) == int(bz):
 				return
 			else:
-				block[int(bx)][int(by)][int(bz)] = 1
+				block[int(bx)][int(by)][int(bz)] = player_holding
 				print("created! (", int(bx), ",", int(by), ",", int(bz), ")")
 			return
 
@@ -306,7 +307,7 @@ def window_refresh_callback(window):
 	display()
 
 def key_callback(window, key, scancode, action, mods):
-	global keystat
+	global keystat, player_holding
 	if action == glfw.PRESS:
 		if key == glfw.KEY_UP or key == glfw.KEY_W:
 			keystat.FORWARD = True
@@ -329,6 +330,26 @@ def key_callback(window, key, scancode, action, mods):
 			glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
 		elif key == glfw.KEY_Q: # close window
 			glfw.set_window_should_close(window, GL_TRUE)
+		elif key == glfw.KEY_1:
+			player_holding = 1
+		elif key == glfw.KEY_2:
+			player_holding = 2
+		elif key == glfw.KEY_3:
+			player_holding = 3
+		elif key == glfw.KEY_4:
+			player_holding = 4
+		elif key == glfw.KEY_5:
+			player_holding = 5
+		elif key == glfw.KEY_6:
+			player_holding = 6
+		elif key == glfw.KEY_7:
+			player_holding = 7
+		elif key == glfw.KEY_8:
+			player_holding = 8
+		elif key == glfw.KEY_9:
+			player_holding = 9
+		elif key == glfw.KEY_0:
+			player_holding = 0
 	elif action == glfw.RELEASE:
 		if key == glfw.KEY_UP or key == glfw.KEY_W:
 			keystat.FORWARD = False
