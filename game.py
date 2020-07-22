@@ -31,7 +31,7 @@ block_color = (
 
 player_height = 2
 player_speed = 0.005
-player_radius = 0.1
+player_radius = 0.1 # player_radius <= 1
 player_holding = 1
 
 class Player:
@@ -291,11 +291,15 @@ def create_block():
 		y -= math.sin(rx/180*math.pi) * step
 		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		# print("(", x, ",", y, ",", z, ")")
-		if x < 0 or x >= world_width or y < 0 or y >= world_heihgt or z < 0 or z >= world_depth:
+		if x-player_radius < 0 or x+player_radius >= world_width\
+				or y < 0 or y >= world_heihgt\
+				or z-player_radius < 0 or z+player_radius >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
 			# print("hit : (", int(-x), ", ", int(y), ", ", int(-z), ")")
-			if int(player.x) == int(bx) and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0 and int(player.z) == int(bz):
+			if (int(player.x-player_radius) == int(bx) or int(player.x+player_radius) == int(bx))\
+					and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0\
+					and (int(player.z-player_radius) == int(bz) or int(player.z+player_radius) == int(bz)):
 				return
 			else:
 				block[int(bx)][int(by)][int(bz)] = player_holding
