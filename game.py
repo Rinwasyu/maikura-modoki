@@ -86,21 +86,24 @@ class Player:
 		
 		#if cnt_tick % 1000 == 0:
 		#	print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
-		for i in [0, player_height-1]:
-			for j in [-player_radius, player_radius]:
-				if block[int(next_x+j)][int(self.y + i)][int(self.z + j)] > 0:
-					self.vx = 0
-					next_x = self.x
-		for i in [0, player_height-1]:
-			for j in [-player_radius, player_radius]:
-				if block[int(next_x + j)][int(next_y + i)][int(self.z + j)] > 0:
-					self.vy = 0
-					next_y = self.y
-		for i in [0, player_height-1]:
-			for j in [-player_radius, player_radius]:
-				if block[int(next_x + j)][int(next_y + i)][int(next_z + j)] > 0:
-					self.vz = 0
-					next_z = self.z
+		for i in [-player_radius, player_radius]:
+			for j in [0, player_height-1]:
+				for k in [-player_radius, player_radius]:
+					if block[int(next_x + i)][int(self.y + j)][int(self.z + k)] > 0:
+						self.vx = 0
+						next_x = self.x
+		for i in [-player_radius, player_radius]:
+			for j in [0, player_height]:
+				for k in [-player_radius, player_radius]:
+					if block[int(next_x + i)][int(next_y + j)][int(self.z + k)] > 0:
+						self.vy = 0
+						next_y = self.y
+		for i in [-player_radius, player_radius]:
+			for j in [0, player_height-1]:
+				for k in [-player_radius, player_radius]:
+					if block[int(next_x + i)][int(next_y + j)][int(next_z + k)] > 0:
+						self.vz = 0
+						next_z = self.z
 		
 		self.x += self.vx
 		self.y += self.vy
