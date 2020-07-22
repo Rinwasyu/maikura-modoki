@@ -24,7 +24,10 @@ cursor_x = -1
 cursor_y = -1
 
 block_size = 1
-block_color = ((0,0,0,0), (1,0,0,1), (0,1,0,1), (0,0,1,1), (1,1,0,1), (1,0,1,1), (0,1,1,1), (1,1,1,1))
+block_color = (
+		(0,0,0,0), (1,0,0,1), (0,1,0,1), (0.2,0.2,1,1), (1,1,0,1), (1,0,1,1),
+		(0,1,1,1), (1,1,1,1), (0.5,0.5,1,1), (0.5,0,0.5,1)
+	)
 
 player_height = 2
 player_speed = 0.005
@@ -145,6 +148,33 @@ def menu():
 	#if cnt_tick % 100 == 0:
 	#	print("rx:", rx, "ry:", ry, "(", x, ",", y, ",", z, ")")
 	glPopMatrix()
+	
+	glPushMatrix()
+	r_x = rx + 19
+	x = player.x+ math.sin(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
+	y = (player.y+player_height*0.9) - math.sin(r_x/180*math.pi) * 0.1
+	z = player.z - math.cos(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
+	glTranslated(x * block_size, y * block_size, z * block_size)
+	glRotated(-ry, 0, 1, 0)
+	glRotated(-rx, 1, 0, 0)
+	for i in range(0, 9):
+		glPushMatrix()
+		glTranslated(0.011*i - 0.044, 0, 0)
+		glMaterialfv(GL_FRONT, GL_EMISSION, (0,0,0,0))
+		glCallList(list_selectionmenu_block_wireframe)
+		glMaterialfv(GL_FRONT, GL_EMISSION, block_color[i+1])
+		glCallList(list_selectionmenu_block)
+		if player_holding == i+1:
+			glMaterialfv(GL_FRONT, GL_EMISSION, (1, 1, 1, 1))
+		else:
+			glMaterialfv(GL_FRONT, GL_EMISSION, (0.5,0.5,0.5,1))
+		glCallList(list_selectionmenu_button)
+		glMaterialfv(GL_FRONT, GL_EMISSION, (0,0,0,0))
+		glMaterialfv(GL_FRONT, GL_AMBIENT, (0,0,0,0))
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, (0,0,0,0))
+		glPopMatrix()
+	glPopMatrix()
+	
 	return
 
 def gen_glList():
@@ -199,6 +229,49 @@ def gen_glList():
 	glEnd()
 	glMaterialfv(GL_FRONT, GL_EMISSION, (0,0,0,0))
 	glEndList()
+	
+	global list_selectionmenu_button
+	list_selectionmenu_button = glGenLists(1)
+	glNewList(list_selectionmenu_button, GL_COMPILE)
+	sv = (
+			(0.005, -0.005, 0), (0.005, 0.005, 0), (-0.005, 0.005, 0), (-0.005, -0.005, 0),
+		)
+	sf = (
+			(0, 1, 2, 3), (0, 1, 2, 3)
+		)
+	glBegin(GL_POLYGON)
+	for i in range(0, len(sf)):
+		for j in range(0, len(sf[i])):
+			glVertex3dv(sv[sf[i][j]])
+	glEnd()
+	glEndList()
+	
+	global list_selectionmenu_block
+	list_selectionmenu_block = glGenLists(1)
+	glNewList(list_selectionmenu_block, GL_COMPILE)
+	mbv = (
+			(0, 0, 0), (0, -0.005, 0), (0.004, -0.0025, 0), (0.004, 0.0025, 0),
+			(-0.004, 0.0025, 0), (-0.004, -0.0025, 0), (0, 0.005, 0)
+		)
+	mbf = (
+			(0, 1, 2, 3), (0, 3, 6, 4), (0, 4, 5, 1)
+		)
+	glBegin(GL_POLYGON)
+	for i in range(0, len(mbf)):
+		for j in range(0, len(mbf[i])):
+			glVertex3dv(mbv[mbf[i][j]])
+	glEnd()
+	glEndList()
+	
+	global list_selectionmenu_block_wireframe
+	list_selectionmenu_block_wireframe = glGenLists(1)
+	glNewList(list_selectionmenu_block_wireframe, GL_COMPILE)
+	glBegin(GL_LINE_LOOP)
+	for i in range(0, len(mbf)):
+		for j in range(0, len(mbf[i])):
+			glVertex3dv(mbv[mbf[i][j]])
+	glEnd()
+	glEndList()
 
 def create_block():
 	# print("viewing from (", player.x, ",", (player.y + player_height*0.9), ",", player.z, ")")
@@ -206,7 +279,7 @@ def create_block():
 	x = player.x
 	y = player.y + player_height*0.9
 	z = player.z
-	step = 0.1
+	step = 0.01
 	distance_limit = 50
 	distance = 0
 	while distance <= distance_limit:
@@ -281,6 +354,7 @@ def render():
 					glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
 					glMaterialfv(GL_FRONT, GL_AMBIENT, (color[0]*0.2, color[1]*0.2, color[2]*0.2, 0.2))
 					glCallList(list_block)
+					glMaterialfv(GL_FRONT, GL_AMBIENT, (0, 0, 0, 0))
 					glPopMatrix()
 
 def update():
