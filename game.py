@@ -30,10 +30,13 @@ block_color = (
 	)
 
 player_height = 2
-player_speed = 0.005
+player_speed = 0.01
 player_radius = 0.1 # player_radius <= 1
 player_holding = 1
 player_eyeshot = 10
+
+LOOP_4 = (0, 1, 2, 3)
+LOOP_9 = (0, 1, 2, 3, 4, 5, 6, 7, 8)
 
 class Player:
 	def __init__(self, x, y, z):
@@ -87,21 +90,23 @@ class Player:
 		
 		#if cnt_tick % 1000 == 0:
 		#	print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
-		for i in [-player_radius, player_radius]:
-			for j in [0, player_height-1]:
-				for k in [-player_radius, player_radius]:
+		radius = (-player_radius, player_radius)
+		height = (0, player_height-1)
+		for i in radius:
+			for j in height:
+				for k in radius:
 					if block[int(next_x + i)][int(self.y + j)][int(self.z + k)] > 0:
 						self.vx = 0
 						next_x = self.x
-		for i in [-player_radius, player_radius]:
-			for j in [0, player_height]:
-				for k in [-player_radius, player_radius]:
+		for i in radius:
+			for j in height:
+				for k in radius:
 					if block[int(next_x + i)][int(next_y + j)][int(self.z + k)] > 0:
 						self.vy = 0
 						next_y = self.y
-		for i in [-player_radius, player_radius]:
-			for j in [0, player_height-1]:
-				for k in [-player_radius, player_radius]:
+		for i in radius:
+			for j in height:
+				for k in radius:
 					if block[int(next_x + i)][int(next_y + j)][int(next_z + k)] > 0:
 						self.vz = 0
 						next_z = self.z
@@ -153,8 +158,6 @@ def menu():
 	glRotated(-ry, 0, 1, 0)
 	glRotated(-rx, 1, 0, 0)
 	glCallList(list_plus)
-	#if cnt_tick % 100 == 0:
-	#	print("rx:", rx, "ry:", ry, "(", x, ",", y, ",", z, ")")
 	glPopMatrix()
 	
 	glPushMatrix()
@@ -165,7 +168,7 @@ def menu():
 	glTranslated(x * block_size, y * block_size, z * block_size)
 	glRotated(-ry, 0, 1, 0)
 	glRotated(-rx, 1, 0, 0)
-	for i in range(0, 9):
+	for i in LOOP_9:
 		glPushMatrix()
 		glTranslated(0.011*i - 0.044, 0, 0)
 		glMaterialfv(GL_FRONT, GL_EMISSION, (0,0,0,0))
@@ -200,19 +203,20 @@ def gen_glList():
 		)
 	list_block = glGenLists(1)
 	glNewList(list_block, GL_COMPILE)
-	
-	for i in range(0, len(bf)):
+	bf_n = len(bf)
+	for i in range(bf_n):
 		glBegin(GL_POLYGON)
 		glNormal3dv(bn[i])
-		for j in range(0, len(bf[i])):
+		for j in LOOP_4:
 			glVertex3dv(bv[bf[i][j]])
 		glEnd()
 	
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0,0,0))
-	for i in range(0, len(bf)):
+	bf_n = len(bf)
+	for i in range(bf_n):
 		glBegin(GL_LINE_LOOP)
 		glNormal3dv(bn[i])
-		for j in range(0, len(bf[i])):
+		for j in LOOP_4:
 			glVertex3dv(bv[bf[i][j]])
 		glEnd()
 	glEndList()
@@ -231,8 +235,9 @@ def gen_glList():
 		)
 	glMaterialfv(GL_FRONT, GL_EMISSION, (1,1,1,1))
 	glBegin(GL_POLYGON)
-	for i in range(0, len(pf)):
-		for j in range(0, len(pf[i])):
+	pf_n = len(pf)
+	for i in range(pf_n):
+		for j in LOOP_4:
 			glVertex3dv(pv[pf[i][j]])
 	glEnd()
 	glMaterialfv(GL_FRONT, GL_EMISSION, (0,0,0,0))
@@ -248,8 +253,9 @@ def gen_glList():
 			(0, 1, 2, 3), (0, 1, 2, 3)
 		)
 	glBegin(GL_POLYGON)
-	for i in range(0, len(sf)):
-		for j in range(0, len(sf[i])):
+	sf_n = len(sf)
+	for i in range(sf_n):
+		for j in LOOP_4:
 			glVertex3dv(sv[sf[i][j]])
 	glEnd()
 	glEndList()
@@ -265,8 +271,9 @@ def gen_glList():
 			(0, 1, 2, 3), (0, 3, 6, 4), (0, 4, 5, 1)
 		)
 	glBegin(GL_POLYGON)
-	for i in range(0, len(mbf)):
-		for j in range(0, len(mbf[i])):
+	mbf_n = len(mbf)
+	for i in range(mbf_n):
+		for j in LOOP_4:
 			glVertex3dv(mbv[mbf[i][j]])
 	glEnd()
 	glEndList()
@@ -275,8 +282,9 @@ def gen_glList():
 	list_selectionmenu_block_wireframe = glGenLists(1)
 	glNewList(list_selectionmenu_block_wireframe, GL_COMPILE)
 	glBegin(GL_LINE_LOOP)
-	for i in range(0, len(mbf)):
-		for j in range(0, len(mbf[i])):
+	mbf_n = len(mbf)
+	for i in range(mbf_n):
+		for j in LOOP_4:
 			glVertex3dv(mbv[mbf[i][j]])
 	glEnd()
 	glEndList()
@@ -337,11 +345,14 @@ def remove_block():
 def new_world():
 	global block
 	block = []
-	for i in range(0, world_width):
+	width = range(world_width)
+	height = range(world_heihgt)
+	depth = range(world_depth)
+	for i in width:
 		block.append([])
-		for j in range(0, world_heihgt):
+		for j in height:
 			block[i].append([])
-			for k in range(0, world_depth):
+			for k in depth:
 				if j < 2 or (i + j < 6):
 					block[i][j].append(4)
 				else:
@@ -357,14 +368,17 @@ def new_world():
 
 def render():
 	range_x_min = max(0,int(player.x)-player_eyeshot)
-	range_x_max = min(len(block),int(player.x)+player_eyeshot)
-	for i in range(range_x_min, range_x_max):
-		range_y_min = max(0,int(player.y)-player_eyeshot)
-		range_y_max = min(len(block[i]),int(player.y)+player_eyeshot)
-		for j in range(range_y_min, range_y_max):
-			range_z_min = max(0,int(player.z)-player_eyeshot)
-			range_z_max = min(len(block[i][j]),int(player.z)+player_eyeshot)
-			for k in range(range_z_min, range_z_max):
+	range_x_max = min(world_width,int(player.x)+player_eyeshot)
+	range_y_min = max(0,int(player.y)-player_eyeshot)
+	range_y_max = min(world_heihgt,int(player.y)+player_eyeshot)
+	range_z_min = max(0,int(player.z)-player_eyeshot)
+	range_z_max = min(world_depth,int(player.z)+player_eyeshot)
+	LOOP_X = range(range_x_min, range_x_max)
+	LOOP_Y = range(range_y_min, range_y_max)
+	LOOP_Z = range(range_z_min, range_z_max)
+	for i in LOOP_X:
+		for j in LOOP_Y:
+			for k in LOOP_Z:
 				if block[i][j][k] > 0:
 					color = block_color[block[i][j][k]]
 					glPushMatrix()
@@ -392,11 +406,12 @@ def set_view(width, height):
 	glViewport(0, 0, width, height)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(50, width / height, 0.001, 100.0)
+	gluPerspective(50, width / height, 0.01, 100.0)
 	glMatrixMode(GL_MODELVIEW)
 
 def window_refresh_callback(window):
 	display()
+	return
 
 def key_callback(window, key, scancode, action, mods):
 	global keystat, player_holding
@@ -451,6 +466,7 @@ def key_callback(window, key, scancode, action, mods):
 			keystat.LEFT = False
 		elif key == glfw.KEY_RIGHT or key == glfw.KEY_D:
 			keystat.RIGHT = False
+	return
 
 def cursor_pos_callback(window, xpos, ypos):
 	# print("cursor_pos : ", xpos, ", ", ypos)
@@ -459,16 +475,12 @@ def cursor_pos_callback(window, xpos, ypos):
 		cursor_x = xpos
 		cursor_y = ypos
 		return
-	if xpos > cursor_x:
-		ry = (ry + (xpos - cursor_x) * 0.5) % 360
-	elif xpos < cursor_x:
-		ry = (ry - (cursor_x - xpos) * 0.5 + 360) % 360
-	if ypos > cursor_y and rx < 90:
+	if abs(rx + (ypos - cursor_y) * 0.5) <= 90:
 		rx += (ypos - cursor_y) * 0.5
-	elif ypos < cursor_y and rx > -90:
-		rx -= (cursor_y - ypos) * 0.5
+	ry = (ry + (xpos - cursor_x) * 0.5 + 360) % 360
 	cursor_x = xpos
 	cursor_y = ypos
+	return
 
 def mouse_button_callback(window, button, action, mods):
 	# hide mouse cursor
@@ -476,13 +488,11 @@ def mouse_button_callback(window, button, action, mods):
 		print("hide mouse cursor")
 		glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 		return
-	
 	if action == glfw.PRESS:
 		if button == glfw.MOUSE_BUTTON_LEFT:
 			remove_block()
 		if button == glfw.MOUSE_BUTTON_RIGHT:
 			create_block()
-	
 	return
 
 def init():
@@ -525,7 +535,6 @@ def main():
 	display()
 
 	while not glfw.window_should_close(window):
-		#glfw.poll_events()
 		glfw.wait_events_timeout(1e-3)
 		update()
 
