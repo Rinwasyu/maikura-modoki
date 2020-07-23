@@ -16,9 +16,9 @@ rx = 90
 window_width = 800
 window_height = 600
 
-world_width = 10
+world_width = 50
 world_heihgt = 50
-world_depth = 10
+world_depth = 50
 
 cursor_x = -1
 cursor_y = -1
@@ -33,6 +33,7 @@ player_height = 2
 player_speed = 0.005
 player_radius = 0.1 # player_radius <= 1
 player_holding = 1
+player_eyeshot = 10
 
 class Player:
 	def __init__(self, x, y, z):
@@ -127,6 +128,13 @@ def display():
 	glRotated(rx, 1.0, 0.0, 0.0)
 	glRotated(ry, 0.0, 1.0, 0.0)
 	glTranslated(-player.x * block_size, (-player.y-player_height*0.9) * block_size, -player.z * block_size)
+	light()
+	scene()
+	menu()
+	glFlush()
+	glfw.swap_buffers(window)
+
+def light():
 	glLightfv(GL_LIGHT0, GL_POSITION, (100,80,100,1))
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0))
 	glLightfv(GL_LIGHT0, GL_AMBIENT, (0.3, 0.3, 0.3, 0.3))
@@ -135,9 +143,6 @@ def display():
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.2, 0.2, 0.2, 0.2))
 	glLightfv(GL_LIGHT1, GL_AMBIENT, (0, 0, 0, 0))
 	glLightfv(GL_LIGHT1, GL_SPECULAR, (0, 0, 0, 0))
-	scene()
-	menu()
-	glFlush()
 
 def menu():
 	glPushMatrix()
@@ -313,7 +318,7 @@ def remove_block():
 	x = player.x
 	y = player.y + player_height*0.9
 	z = player.z
-	step = 0.1
+	step = 0.01
 	distance_limit = 50
 	distance = 0
 	while distance <= distance_limit:
@@ -351,9 +356,15 @@ def new_world():
 	player = Player(4.5, 5, 5.5)
 
 def render():
-	for i in range(0, len(block)):
-		for j in range(0, len(block[i])):
-			for k in range(0, len(block[i][j])):
+	range_x_min = max(0,int(player.x)-player_eyeshot)
+	range_x_max = min(len(block),int(player.x)+player_eyeshot)
+	for i in range(range_x_min, range_x_max):
+		range_y_min = max(0,int(player.y)-player_eyeshot)
+		range_y_max = min(len(block[i]),int(player.y)+player_eyeshot)
+		for j in range(range_y_min, range_y_max):
+			range_z_min = max(0,int(player.z)-player_eyeshot)
+			range_z_max = min(len(block[i][j]),int(player.z)+player_eyeshot)
+			for k in range(range_z_min, range_z_max):
 				if block[i][j][k] > 0:
 					color = block_color[block[i][j][k]]
 					glPushMatrix()
@@ -361,8 +372,8 @@ def render():
 					glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
 					glMaterialfv(GL_FRONT, GL_AMBIENT, (color[0]*0.2, color[1]*0.2, color[2]*0.2, 0.2))
 					glCallList(list_block)
-					glMaterialfv(GL_FRONT, GL_AMBIENT, (0, 0, 0, 0))
 					glPopMatrix()
+	glMaterialfv(GL_FRONT, GL_AMBIENT, (0, 0, 0, 0))
 
 def update():
 	player.tick()
@@ -481,10 +492,12 @@ def init():
 	gen_glList()
 
 def main():
+	global window
+	
 	if not glfw.init():
 		return
 	
-	glfw.window_hint(glfw.DOUBLEBUFFER, glfw.FALSE)
+	glfw.window_hint(glfw.DOUBLEBUFFER, glfw.TRUE)
 	window = glfw.create_window(window_width, window_height, "game", None, None)
 	
 	if not window:
