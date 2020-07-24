@@ -29,7 +29,7 @@ block_color = (
 		(0,1,1,1), (1,1,1,1), (0.5,0.5,1,1), (0.5,0,0.5,1)
 	)
 
-player_height = 2
+player_height = 1.9
 player_speed = 0.01
 player_radius = 0.1 # player_radius <= 1
 player_holding = 1
@@ -89,8 +89,7 @@ class Player:
 			next_z = self.z
 		
 		radius = (-player_radius, player_radius)
-		height = (0, player_height-1)
-		height_y = (0, player_height)
+		height = (0, player_height)
 		for i in radius:
 			for j in height:
 				for k in radius:
@@ -98,7 +97,7 @@ class Player:
 						self.vx = 0
 						next_x = self.x
 		for i in radius:
-			for j in height_y:
+			for j in height:
 				for k in radius:
 					if block[int(next_x + i)][int(next_y + j)][int(self.z + k)] > 0:
 						self.vy = 0
@@ -467,7 +466,6 @@ def key_callback(window, key, scancode, action, mods):
 	return
 
 def cursor_pos_callback(window, xpos, ypos):
-	# print("cursor_pos : ", xpos, ", ", ypos)
 	global rx, ry, cursor_x, cursor_y
 	if cursor_x == -1:
 		cursor_x = xpos
