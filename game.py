@@ -90,6 +90,7 @@ class Player:
 		
 		radius = (-player_radius, player_radius)
 		height = (0, player_height-1)
+		height_y = (0, player_height)
 		for i in radius:
 			for j in height:
 				for k in radius:
@@ -97,7 +98,7 @@ class Player:
 						self.vx = 0
 						next_x = self.x
 		for i in radius:
-			for j in height:
+			for j in height_y:
 				for k in radius:
 					if block[int(next_x + i)][int(next_y + j)][int(self.z + k)] > 0:
 						self.vy = 0
@@ -312,7 +313,7 @@ def create_block():
 			else:
 				bz = z
 			if (int(player.x-player_radius) == int(bx) or int(player.x+player_radius) == int(bx))\
-					and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0\
+					and int(by-player.y) < player_height and int(by-player.y) >= 0\
 					and (int(player.z-player_radius) == int(bz) or int(player.z+player_radius) == int(bz)):
 				return
 			else:
