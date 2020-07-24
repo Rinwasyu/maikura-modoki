@@ -89,7 +89,7 @@ class Player:
 			next_z = self.z
 		
 		radius = (-player_radius, player_radius)
-		height = (0, player_height)
+		height = (0, 1, player_height)
 		for i in radius:
 			for j in height:
 				for k in radius:
