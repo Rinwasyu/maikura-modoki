@@ -88,8 +88,6 @@ class Player:
 			self.vz = 0
 			next_z = self.z
 		
-		#if cnt_tick % 1000 == 0:
-		#	print("(", block[int(-self.x)][int(self.y)][int(-self.z)],")",int(-next_x), ", ", int(self.y), ", ", int(-self.z))
 		radius = (-player_radius, player_radius)
 		height = (0, player_height-1)
 		for i in radius:
@@ -290,8 +288,6 @@ def gen_glList():
 	glEndList()
 
 def create_block():
-	# print("viewing from (", player.x, ",", (player.y + player_height*0.9), ",", player.z, ")")
-	# print("rx : ", rx, ", ry : ", ry)
 	x = player.x
 	y = player.y + player_height*0.9
 	z = player.z
@@ -306,13 +302,15 @@ def create_block():
 		x += math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		y -= math.sin(rx/180*math.pi) * step
 		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-		# print("(", x, ",", y, ",", z, ")")
 		if x-player_radius < 0 or x+player_radius >= world_width\
 				or y < 0 or y >= world_heihgt\
 				or z-player_radius < 0 or z+player_radius >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
-			# print("hit : (", int(-x), ", ", int(y), ", ", int(-z), ")")
+			if abs(int(x)+0.5 - bx) < abs(int(z)+0.5 - bz):
+				bx = x
+			else:
+				bz = z
 			if (int(player.x-player_radius) == int(bx) or int(player.x+player_radius) == int(bx))\
 					and int(by)-int(player.y) < player_height and int(by)-int(player.y) >= 0\
 					and (int(player.z-player_radius) == int(bz) or int(player.z+player_radius) == int(bz)):
@@ -334,7 +332,6 @@ def remove_block():
 		x += math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		y -= math.sin(rx/180*math.pi) * step
 		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-		# print("(", x, ",", y, ",", z, ")")
 		if x < 0 or x >= world_width or y < 0 or y >= world_heihgt or z < 0 or z >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
