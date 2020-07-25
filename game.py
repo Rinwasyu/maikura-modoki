@@ -113,6 +113,11 @@ class Player:
 		self.y += self.vy
 		self.z += self.vz
 		
+		if int(self.x) != int(self.x-self.vx)\
+				or int(self.y) != int(self.y-self.vy)\
+				or int(self.z) != int(self.z-self.vz):
+			update_render()
+		
 		cnt_tick += 1
 
 class Keystat:
@@ -286,6 +291,35 @@ def gen_glList():
 			glVertex3dv(mbv[mbf[i][j]])
 	glEnd()
 	glEndList()
+	
+	update_render()
+
+def update_render():
+	global list_render
+	range_x_min = max(0,int(player.x)-player_eyeshot)
+	range_x_max = min(world_width,int(player.x)+player_eyeshot)
+	range_y_min = max(0,int(player.y)-player_eyeshot)
+	range_y_max = min(world_heihgt,int(player.y)+player_eyeshot)
+	range_z_min = max(0,int(player.z)-player_eyeshot)
+	range_z_max = min(world_depth,int(player.z)+player_eyeshot)
+	LOOP_X = range(range_x_min, range_x_max)
+	LOOP_Y = range(range_y_min, range_y_max)
+	LOOP_Z = range(range_z_min, range_z_max)
+	list_render = glGenLists(1)
+	glNewList(list_render, GL_COMPILE)
+	for i in LOOP_X:
+		for j in LOOP_Y:
+			for k in LOOP_Z:
+				if block[i][j][k] > 0:
+					color = block_color[block[i][j][k]]
+					glPushMatrix()
+					glTranslated(block_size * (i), block_size * (j), block_size * (k))
+					glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
+					glMaterialfv(GL_FRONT, GL_AMBIENT, (color[0]*0.2, color[1]*0.2, color[2]*0.2, 0.2))
+					glCallList(list_block)
+					glPopMatrix()
+	glMaterialfv(GL_FRONT, GL_AMBIENT, (0, 0, 0, 0))
+	glEndList()
 
 def create_block():
 	x = player.x
@@ -318,6 +352,7 @@ def create_block():
 			else:
 				block[int(bx)][int(by)][int(bz)] = player_holding
 				print("created! (", int(bx), ",", int(by), ",", int(bz), ")")
+				update_render()
 			return
 
 def remove_block():
@@ -337,6 +372,7 @@ def remove_block():
 		if block[int(x)][int(y)][int(z)] > 0:
 			block[int(x)][int(y)][int(z)] = 0
 			print("removed (", int(x), ",", int(y), ",", int(z), ")")
+			update_render()
 			return
 
 def new_world():
@@ -364,27 +400,7 @@ def new_world():
 	player = Player(4.5, 5, 5.5)
 
 def render():
-	range_x_min = max(0,int(player.x)-player_eyeshot)
-	range_x_max = min(world_width,int(player.x)+player_eyeshot)
-	range_y_min = max(0,int(player.y)-player_eyeshot)
-	range_y_max = min(world_heihgt,int(player.y)+player_eyeshot)
-	range_z_min = max(0,int(player.z)-player_eyeshot)
-	range_z_max = min(world_depth,int(player.z)+player_eyeshot)
-	LOOP_X = range(range_x_min, range_x_max)
-	LOOP_Y = range(range_y_min, range_y_max)
-	LOOP_Z = range(range_z_min, range_z_max)
-	for i in LOOP_X:
-		for j in LOOP_Y:
-			for k in LOOP_Z:
-				if block[i][j][k] > 0:
-					color = block_color[block[i][j][k]]
-					glPushMatrix()
-					glTranslated(block_size * (i), block_size * (j), block_size * (k))
-					glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
-					glMaterialfv(GL_FRONT, GL_AMBIENT, (color[0]*0.2, color[1]*0.2, color[2]*0.2, 0.2))
-					glCallList(list_block)
-					glPopMatrix()
-	glMaterialfv(GL_FRONT, GL_AMBIENT, (0, 0, 0, 0))
+	glCallList(list_render)
 
 def update():
 	player.tick()
