@@ -16,9 +16,9 @@ rx = 90
 window_width = 800
 window_height = 600
 
-world_width = 50
+world_width = 100
 world_heihgt = 50
-world_depth = 50
+world_depth = 100
 
 cursor_x = -1
 cursor_y = -1
@@ -33,7 +33,7 @@ player_height = 1.9
 player_speed = 0.01
 player_radius = 0.1 # player_radius <= 1
 player_holding = 1
-player_eyeshot = 10
+player_eyeshot = 12
 
 LOOP_4 = (0, 1, 2, 3)
 LOOP_9 = (0, 1, 2, 3, 4, 5, 6, 7, 8)
@@ -346,7 +346,7 @@ def create_block():
 			else:
 				bz = z
 			if (int(player.x-player_radius) == int(bx) or int(player.x+player_radius) == int(bx))\
-					and int(by-player.y) < player_height and int(by-player.y) >= 0\
+					and int(int(by)-player.y) < player_height and int(int(by)-player.y) >= 0\
 					and (int(player.z-player_radius) == int(bz) or int(player.z+player_radius) == int(bz)):
 				return
 			else:
@@ -390,14 +390,14 @@ def new_world():
 					block[i][j].append(4)
 				else:
 					block[i][j].append(0)
-	for i in range(3, 6):
-		block[7][1][i] = 0
-	block[7][3][7] = 5
-	block[7][2][7] = 5
-	block[8][2][7] = 5
+	for i in range(49, 51):
+		block[52][1][i] = 0
+	block[52][3][52] = 5
+	block[52][2][52] = 5
+	block[53][2][52] = 5
 	
 	global player
-	player = Player(4.5, 5, 5.5)
+	player = Player(50, 10, 50)
 
 def render():
 	glCallList(list_render)
