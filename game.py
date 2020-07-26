@@ -17,7 +17,7 @@ window_width = 800
 window_height = 600
 
 world_width = 100
-world_heihgt = 50
+world_height = 50
 world_depth = 100
 
 cursor_x = -1
@@ -50,7 +50,7 @@ class Player:
 		global keystat, cnt_tick
 		
 		# out of range
-		if self.x < 0 or self.y < 0 or self.z < 0 or self.x >= world_width or self.y >= world_heihgt or self.z >= world_depth:
+		if self.x < 0 or self.y < 0 or self.z < 0 or self.x >= world_width or self.y >= world_height or self.z >= world_depth:
 			return
 		
 		self.vx *= 0.5
@@ -79,10 +79,10 @@ class Player:
 		if next_x - player_radius < 0 or next_x + player_radius >= world_width:
 			self.vx = 0
 			next_x = self.x
-		if next_y < 0 or next_y + player_height >= world_heihgt:
+		if next_y < 0 or next_y + player_height >= world_height:
 			self.vy = 0
 			next_y = self.y
-			# next_y += world_heihgt-player_height
+			# next_y += world_height-player_height
 			# self.y = next_y
 		if next_z - player_radius < 0 or next_z + player_radius >= world_depth:
 			self.vz = 0
@@ -299,7 +299,7 @@ def update_render():
 	range_x_min = max(0,int(player.x)-player_eyeshot)
 	range_x_max = min(world_width,int(player.x)+player_eyeshot)
 	range_y_min = max(0,int(player.y)-player_eyeshot)
-	range_y_max = min(world_heihgt,int(player.y)+player_eyeshot)
+	range_y_max = min(world_height,int(player.y)+player_eyeshot)
 	range_z_min = max(0,int(player.z)-player_eyeshot)
 	range_z_max = min(world_depth,int(player.z)+player_eyeshot)
 	LOOP_X = range(range_x_min, range_x_max)
@@ -337,7 +337,7 @@ def create_block():
 		y -= math.sin(rx/180*math.pi) * step
 		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		if x-player_radius < 0 or x+player_radius >= world_width\
-				or y < 0 or y >= world_heihgt\
+				or y < 0 or y >= world_height\
 				or z-player_radius < 0 or z+player_radius >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
@@ -367,7 +367,7 @@ def remove_block():
 		x += math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 		y -= math.sin(rx/180*math.pi) * step
 		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-		if x < 0 or x >= world_width or y < 0 or y >= world_heihgt or z < 0 or z >= world_depth:
+		if x < 0 or x >= world_width or y < 0 or y >= world_height or z < 0 or z >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
 			block[int(x)][int(y)][int(z)] = 0
@@ -377,19 +377,15 @@ def remove_block():
 
 def new_world():
 	global block
-	block = []
+	block = [[[0] * world_depth for i in range(world_height)] for j in range(world_width)]
 	width = range(world_width)
-	height = range(world_heihgt)
+	height = range(world_height)
 	depth = range(world_depth)
 	for i in width:
-		block.append([])
 		for j in height:
-			block[i].append([])
 			for k in depth:
 				if j < 2 or (i + j < 6):
-					block[i][j].append(4)
-				else:
-					block[i][j].append(0)
+					block[i][j][k] = 4
 	for i in range(49, 51):
 		block[52][1][i] = 0
 	block[52][3][52] = 5
