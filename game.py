@@ -7,6 +7,7 @@ import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import math
+import random
 
 
 cnt_tick = 0
@@ -315,7 +316,7 @@ def update_render():
 					glPushMatrix()
 					glTranslated(block_size * (i), block_size * (j), block_size * (k))
 					glMaterialfv(GL_FRONT, GL_DIFFUSE, color)
-					glMaterialfv(GL_FRONT, GL_AMBIENT, (color[0]*0.2, color[1]*0.2, color[2]*0.2, 0.2))
+					glMaterialfv(GL_FRONT, GL_AMBIENT, (color[0]*0.2, color[1]*0.2, color[2]*0.2, 1))
 					glCallList(list_block)
 					glPopMatrix()
 	glMaterialfv(GL_FRONT, GL_AMBIENT, (0, 0, 0, 0))
@@ -326,16 +327,18 @@ def create_block():
 	y = player.y + player_height*0.9
 	z = player.z
 	step = 0.01
-	distance_limit = 50
+	diff_x = math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+	diff_y = -math.sin(rx/180*math.pi) * step
+	diff_z = -math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 	distance = 0
-	while distance <= distance_limit:
+	while distance <= player_eyeshot:
 		distance += step
 		bx = x
 		by = y
 		bz = z
-		x += math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-		y -= math.sin(rx/180*math.pi) * step
-		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		x += diff_x
+		y += diff_y
+		z += diff_z
 		if x-player_radius < 0 or x+player_radius >= world_width\
 				or y < 0 or y >= world_height\
 				or z-player_radius < 0 or z+player_radius >= world_depth:
@@ -360,13 +363,15 @@ def remove_block():
 	y = player.y + player_height*0.9
 	z = player.z
 	step = 0.01
-	distance_limit = 50
+	diff_x = math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+	diff_y = -math.sin(rx/180*math.pi) * step
+	diff_z = -math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 	distance = 0
-	while distance <= distance_limit:
+	while distance <= player_eyeshot:
 		distance += step
-		x += math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-		y -= math.sin(rx/180*math.pi) * step
-		z -= math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+		x += diff_x
+		y += diff_y
+		z += diff_z
 		if x < 0 or x >= world_width or y < 0 or y >= world_height or z < 0 or z >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
@@ -385,7 +390,7 @@ def new_world():
 		for j in height:
 			for k in depth:
 				if j < 2 or (i + j < 6):
-					block[i][j][k] = 4
+					block[i][j][k] = int(random.randrange(1,9))
 	for i in range(49, 51):
 		block[52][1][i] = 0
 	block[52][3][52] = 5
@@ -415,7 +420,7 @@ def set_view(width, height):
 	glViewport(0, 0, width, height)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(50, width / height, 0.01, 100.0)
+	gluPerspective(50, width / height, 0.01, 20)
 	glMatrixMode(GL_MODELVIEW)
 
 def window_refresh_callback(window):
@@ -516,7 +521,7 @@ def main():
 		return
 	
 	glfw.window_hint(glfw.DOUBLEBUFFER, glfw.TRUE)
-	window = glfw.create_window(window_width, window_height, "game", None, None)
+	window = glfw.create_window(window_width, window_height, "maikura-modoki", None, None)
 	
 	if not window:
 		glfw.terminate()
