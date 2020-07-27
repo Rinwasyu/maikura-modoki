@@ -293,10 +293,15 @@ def gen_glList():
 	glEnd()
 	glEndList()
 	
+	global list_render
+	list_render = None
+	
 	update_render()
 
 def update_render():
 	global list_render
+	if list_render:
+		glDeleteLists(list_render, 1)
 	range_x_min = max(0,int(player.x)-player_eyeshot)
 	range_x_max = min(world_width,int(player.x)+player_eyeshot)
 	range_y_min = max(0,int(player.y)-player_eyeshot)
