@@ -21,9 +21,6 @@ world_width = 100
 world_height = 50
 world_depth = 100
 
-cursor_x = -1
-cursor_y = -1
-
 block_size = 1
 block_color = (
 		(0,0,0,0), (1,0,0,1), (0,1,0,1), (0.2,0.2,1,1), (1,1,0,1), (1,0,1,1),
@@ -73,6 +70,13 @@ class Player:
 			keystat.JUMP = False
 		else:
 			self.vy -= 0.0003
+		
+		if mousestat.LEFT:
+			remove_block()
+			mousestat.LEFT = False
+		elif mousestat.RIGHT:
+			create_block()
+			mousestat.RIGHT = False
 		
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
@@ -129,7 +133,12 @@ class Keystat:
 		self.RIGHT = False
 		self.JUMP = False
 
-#TODO: class Mousestat
+class Mousestat:
+	def __init__(self):
+		self.RIGHT = False
+		self.LEFT = False
+		self.x = -1
+		self.y = -1
 
 def display():
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -488,19 +497,17 @@ def key_callback(window, key, scancode, action, mods):
 	return
 
 def cursor_pos_callback(window, xpos, ypos):
-	global rx, ry, cursor_x, cursor_y
-	if cursor_x == -1:
-		cursor_x = xpos
-		cursor_y = ypos
-		return
-	if abs(rx + (ypos - cursor_y) * 0.5) <= 90:
-		rx += (ypos - cursor_y) * 0.5
-	ry = (ry + (xpos - cursor_x) * 0.5 + 360) % 360
-	cursor_x = xpos
-	cursor_y = ypos
+	global rx, ry, mousestat
+	if mousestat.x != -1:
+		if abs(rx + (ypos - mousestat.y) * 0.5) <= 90:
+			rx += (ypos - mousestat.y) * 0.5
+		ry = (ry + (xpos - mousestat.x) * 0.5 + 360) % 360
+	mousestat.x = xpos
+	mousestat.y = ypos
 	return
 
 def mouse_button_callback(window, button, action, mods):
+	global mousestat
 	# hide mouse cursor
 	if glfw.get_input_mode(window, glfw.CURSOR) == glfw.CURSOR_NORMAL:
 		print("hide mouse cursor")
@@ -508,14 +515,15 @@ def mouse_button_callback(window, button, action, mods):
 		return
 	if action == glfw.PRESS:
 		if button == glfw.MOUSE_BUTTON_LEFT:
-			remove_block()
-		if button == glfw.MOUSE_BUTTON_RIGHT:
-			create_block()
+			mousestat.LEFT = True
+		elif button == glfw.MOUSE_BUTTON_RIGHT:
+			mousestat.RIGHT = True
 	return
 
 def init():
-	global keystat
+	global keystat, mousestat
 	keystat = Keystat()
+	mousestat = Mousestat()
 	new_world()
 	gen_glList()
 
