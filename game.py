@@ -147,6 +147,7 @@ def display():
 	glRotated(ry, 0.0, 1.0, 0.0)
 	glTranslated(-player.x * block_size, (-player.y-player_height*0.9) * block_size, -player.z * block_size)
 	light()
+	cloud()
 	scene()
 	menu()
 	glFlush()
@@ -302,6 +303,20 @@ def gen_glList():
 	glEnd()
 	glEndList()
 	
+	global list_cloud
+	cv = (
+			(0, 0, 0), (0, 0, -50), (50, 0, -50), (50, 0, 0)
+		)
+	cf = (0, 1, 2, 3)
+	list_cloud = glGenLists(1)
+	glNewList(list_cloud, GL_COMPILE)
+	glBegin(GL_POLYGON)
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.9,0.9,0.9,1))
+	for i in range(len(cf)):
+		glVertex3dv(cv[cf[i]])
+	glEnd()
+	glEndList()
+	
 	global list_render
 	list_render = None
 	
@@ -414,6 +429,14 @@ def new_world():
 	global player
 	player = Player(50, 10, 50)
 
+def cloud():
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.9,0.9,0.9,1))
+	for i in range(0, 5):
+		glPushMatrix()
+		glTranslated(cnt_tick % 200 + (200*(i+1)) - 500, 50, 10)
+		glCallList(list_cloud)
+		glPopMatrix()
+
 def render():
 	glCallList(list_render)
 
@@ -434,7 +457,7 @@ def set_view(width, height):
 	glViewport(0, 0, width, height)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(50, width / height, 0.01, 100)
+	gluPerspective(50, width / height, 0.01, 1000)
 	glMatrixMode(GL_MODELVIEW)
 
 def window_refresh_callback(window):
@@ -547,7 +570,7 @@ def main():
 	glfw.set_mouse_button_callback(window, mouse_button_callback)
 	glfw.make_context_current(window)
 	
-	glClearColor(1.0, 1.0, 1.0, 1.0)
+	glClearColor(0.6, 0.6, 1.0, 1.0)
 	glEnable(GL_DEPTH_TEST)
 	glEnable(GL_CULL_FACE)
 	glCullFace(GL_BACK)
