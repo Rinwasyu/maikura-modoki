@@ -313,8 +313,8 @@ def update_render():
 		glDeleteLists(list_render, 1)
 	range_x_min = max(0,int(player.x)-player_eyeshot)
 	range_x_max = min(world_width,int(player.x)+player_eyeshot)
-	range_y_min = max(0,int(player.y)-player_eyeshot)
-	range_y_max = min(world_height,int(player.y)+player_eyeshot)
+	range_y_min = 0
+	range_y_max = world_height
 	range_z_min = max(0,int(player.z)-player_eyeshot)
 	range_z_max = min(world_depth,int(player.z)+player_eyeshot)
 	LOOP_X = range(range_x_min, range_x_max)
@@ -434,7 +434,7 @@ def set_view(width, height):
 	glViewport(0, 0, width, height)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(50, width / height, 0.01, 20)
+	gluPerspective(50, width / height, 0.01, 100)
 	glMatrixMode(GL_MODELVIEW)
 
 def window_refresh_callback(window):
