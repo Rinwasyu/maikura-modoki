@@ -32,6 +32,7 @@ player_speed = 0.01
 player_radius = 0.1 # player_radius <= 1
 player_holding = 1
 player_eyeshot = 12
+player_hand_anim = 0
 
 LOOP_4 = (0, 1, 2, 3)
 LOOP_9 = (0, 1, 2, 3, 4, 5, 6, 7, 8)
@@ -71,12 +72,17 @@ class Player:
 		else:
 			self.vy -= 0.0003
 		
+		global player_hand_anim
+		if player_hand_anim > 0:
+			player_hand_anim -= 1
 		if mousestat.LEFT:
-			remove_block()
-			mousestat.LEFT = False
+			if player_hand_anim == 0:
+				remove_block()
+				player_hand_anim = 45
 		elif mousestat.RIGHT:
-			create_block()
-			mousestat.RIGHT = False
+			if player_hand_anim == 0:
+				create_block()
+				player_hand_anim = 45
 		
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
@@ -149,6 +155,7 @@ def display():
 	light()
 	cloud()
 	scene()
+	hand()
 	menu()
 	glFlush()
 	glfw.swap_buffers(window)
@@ -201,6 +208,21 @@ def menu():
 	glPopMatrix()
 	
 	return
+
+def hand():
+	glPushMatrix()
+	r_x = rx + 30
+	x = player.x+ math.sin(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
+	y = (player.y+player_height*0.9) - math.sin(r_x/180*math.pi) * 0.1
+	z = player.z - math.cos(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
+	glTranslated(x * block_size, y * block_size, z * block_size)
+	glRotated(-ry, 0, 1, 0)
+	glRotated(-rx, 1, 0, 0)
+	glTranslated(0.06, -0.01, -0.01)
+	glRotated(-20-player_hand_anim, 1, 0, 0)
+	glRotated(20, 0, 0, 1)
+	glCallList(list_hand)
+	glPopMatrix()
 
 def gen_glList():
 	global list_block
@@ -312,9 +334,33 @@ def gen_glList():
 	glNewList(list_cloud, GL_COMPILE)
 	glBegin(GL_POLYGON)
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.9,0.9,0.9,1))
+	glMaterialfv(GL_FRONT, GL_AMBIENT, (0.9,0.9,0.9,1))
 	for i in range(len(cf)):
 		glVertex3dv(cv[cf[i]])
 	glEnd()
+	glEndList()
+	
+	global list_hand
+	list_hand = glGenLists(1)
+	glNewList(list_hand, GL_COMPILE)
+	hv = (
+			(0, 0, 0), (0, 0, -0.015), (0.015, 0, -0.015), (0.015, 0, 0),
+			(0, 0.05, 0), (0, 0.05, -0.015), (0.015, 0.05, -0.015), (0.015, 0.05, 0),
+		)
+	hf = (
+			(0,1,2,3), (4,7,6,5), (0,4,5,1), (1,5,6,2), (2,6,7,3), (3,7,4,0)
+		)
+	hn = (
+			(0, -1, 0), (0, 1, 0), (-1, 0, 0), (0, 0, -1), (1, 0, 0), (0, 0, 1)
+		)
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.5, 0.5, 0.5, 1))
+	for i in range(len(hf)):
+		glBegin(GL_POLYGON)
+		glNormal3dv(hn[i])
+		for j in LOOP_4:
+			glVertex3dv(hv[hf[i][j]])
+		glEnd()
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0, 0, 0, 0))
 	glEndList()
 	
 	global list_render
@@ -541,6 +587,11 @@ def mouse_button_callback(window, button, action, mods):
 			mousestat.LEFT = True
 		elif button == glfw.MOUSE_BUTTON_RIGHT:
 			mousestat.RIGHT = True
+	elif action == glfw.RELEASE:
+		if button == glfw.MOUSE_BUTTON_LEFT:
+			mousestat.LEFT = False
+		elif button == glfw.MOUSE_BUTTON_RIGHT:
+			mousestat.RIGHT = False
 	return
 
 def init():
