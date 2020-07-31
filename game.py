@@ -384,7 +384,9 @@ def update_render():
 	for i in LOOP_X:
 		for j in LOOP_Y:
 			for k in LOOP_Z:
-				if block[i][j][k] > 0:
+				if block_visibility[i][j][k] == 0 or block[i][j][k] == 0:
+					continue
+				else:
 					color = block_color[block[i][j][k]]
 					glPushMatrix()
 					glTranslated(block_size * (i), block_size * (j), block_size * (k))
@@ -396,6 +398,7 @@ def update_render():
 	glEndList()
 
 def create_block():
+	global block
 	x = player.x
 	y = player.y + player_height*0.9
 	z = player.z
@@ -428,10 +431,17 @@ def create_block():
 			else:
 				block[int(bx)][int(by)][int(bz)] = player_holding
 				print("created! (", int(bx), ",", int(by), ",", int(bz), ")")
+				block_visibility[max(0,int(bx)-1)][int(by)][int(bz)] -= 1
+				block_visibility[min(world_width,int(bx)+1)][int(by)][int(bz)] -= 1
+				block_visibility[int(bx)][max(0,int(by)-1)][int(bz)] -= 1
+				block_visibility[int(bx)][min(world_height,int(by)+1)][int(bz)] -= 1
+				block_visibility[int(bx)][int(by)][max(0,int(bz)-1)] -= 1
+				block_visibility[int(bx)][int(by)][min(world_depth,int(bz)+1)] -= 1
 				update_render()
 			return
 
 def remove_block():
+	global block
 	x = player.x
 	y = player.y + player_height*0.9
 	z = player.z
@@ -450,28 +460,41 @@ def remove_block():
 		if block[int(x)][int(y)][int(z)] > 0:
 			block[int(x)][int(y)][int(z)] = 0
 			print("removed (", int(x), ",", int(y), ",", int(z), ")")
+			block_visibility[max(0,int(x)-1)][int(y)][int(z)] += 1
+			block_visibility[min(world_width,int(x)+1)][int(y)][int(z)] += 1
+			block_visibility[int(x)][max(0,int(y)-1)][int(z)] += 1
+			block_visibility[int(x)][min(world_height,int(y)+1)][int(z)] += 1
+			block_visibility[int(x)][int(y)][max(0,int(z)-1)] += 1
+			block_visibility[int(x)][int(y)][min(world_depth,int(z)+1)] += 1
 			update_render()
 			return
 
 def new_world():
-	global block
+	global block, block_visibility
 	block = [[[0] * world_depth for i in range(world_height)] for j in range(world_width)]
+	block_visibility = [[[0] * world_depth for i in range(world_height)] for j in range(world_width)]
 	width = range(world_width)
 	height = range(world_height)
 	depth = range(world_depth)
 	for i in width:
 		for j in height:
 			for k in depth:
-				if j < 2 or (i + j < 6):
+				if j < 10 or (i + j < 20):
 					block[i][j][k] = int(random.randrange(1,9))
-	for i in range(49, 51):
-		block[52][1][i] = 0
-	block[52][3][52] = 5
-	block[52][2][52] = 5
-	block[53][2][52] = 5
+				if j < 9 or (i + j < 19):
+					block_visibility[i][j][k] = 0
+				elif j == 8:
+					block_visibility[i][j][k] = 1
+				else:
+					block_visibility[i][j][k] = 6
+	#for i in range(49, 51):
+	#	block[52][1][i] = 0
+	#block[52][3][52] = 5
+	#block[52][2][52] = 5
+	#block[53][2][52] = 5
 	
 	global player
-	player = Player(50, 10, 50)
+	player = Player(50, 20, 50)
 
 def cloud():
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.9,0.9,0.9,1))
