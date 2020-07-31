@@ -29,7 +29,7 @@ block_color = (
 
 player_height = 1.9
 player_speed = 0.01
-player_radius = 0.1 # player_radius <= 1
+player_radius = 0.15 # player_radius <= 1
 player_holding = 1
 player_eyeshot = 12
 player_hand_anim = 0
@@ -93,8 +93,6 @@ class Player:
 		if next_y < 0 or next_y + player_height >= world_height:
 			self.vy = 0
 			next_y = self.y
-			# next_y += world_height-player_height
-			# self.y = next_y
 		if next_z - player_radius < 0 or next_z + player_radius >= world_depth:
 			self.vz = 0
 			next_z = self.z
@@ -577,10 +575,9 @@ def cursor_pos_callback(window, xpos, ypos):
 
 def mouse_button_callback(window, button, action, mods):
 	global mousestat
-	# hide mouse cursor
 	if glfw.get_input_mode(window, glfw.CURSOR) == glfw.CURSOR_NORMAL:
 		print("hide mouse cursor")
-		glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+		glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED) # hide mouse cursor
 		return
 	if action == glfw.PRESS:
 		if button == glfw.MOUSE_BUTTON_LEFT:
