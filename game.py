@@ -54,23 +54,29 @@ class Player:
 		
 		self.vx *= 0.5
 		self.vz *= 0.5
+		diff_sin_ry = player_speed * math.sin(ry/180*math.pi)
+		diff_cos_ry = player_speed * math.cos(ry/180*math.pi)
 		if keystat.FORWARD:
-			self.vx += player_speed * math.sin(ry/180*math.pi)
-			self.vz -= player_speed * math.cos(ry/180*math.pi)
+			self.vx += diff_sin_ry
+			self.vz -= diff_cos_ry
 		if keystat.BACK:
-			self.vx -= player_speed * math.sin(ry/180*math.pi)
-			self.vz += player_speed * math.cos(ry/180*math.pi)
+			self.vx -= diff_sin_ry
+			self.vz += diff_cos_ry
 		if keystat.LEFT:
-			self.vx -= player_speed * math.sin((ry+90)/180*math.pi)
-			self.vz += player_speed * math.cos((ry+90)/180*math.pi)
+			self.vx -= diff_cos_ry
+			self.vz -= diff_sin_ry
 		if keystat.RIGHT:
-			self.vx += player_speed * math.sin((ry+90)/180*math.pi)
-			self.vz -= player_speed * math.cos((ry+90)/180*math.pi)
+			self.vx += diff_cos_ry
+			self.vz += diff_sin_ry
 		if keystat.JUMP:
 			self.vy = 0.025
 			keystat.JUMP = False
 		else:
 			self.vy -= 0.0003
+		if keystat.LAND:
+			if self.vy > 0:
+				self.vy *= -1
+			self.vy -= 0.001
 		
 		global player_hand_anim
 		if player_hand_anim > 0:
@@ -136,6 +142,7 @@ class Keystat:
 		self.LEFT = False
 		self.RIGHT = False
 		self.JUMP = False
+		self.LAND = False
 
 class Mousestat:
 	def __init__(self):
@@ -544,6 +551,8 @@ def key_callback(window, key, scancode, action, mods):
 			keystat.RIGHT = True
 		elif key == glfw.KEY_SPACE:
 			keystat.JUMP = True
+		elif key == glfw.KEY_LEFT_SHIFT:
+			keystat.LAND = True
 		elif key == glfw.KEY_P: # For debugging
 			print("player at (", int(player.x), ", ", int(player.y), ", ", int(player.z), ")")
 		elif key == glfw.KEY_R:
@@ -584,6 +593,10 @@ def key_callback(window, key, scancode, action, mods):
 			keystat.LEFT = False
 		elif key == glfw.KEY_RIGHT or key == glfw.KEY_D:
 			keystat.RIGHT = False
+		elif key == glfw.KEY_SPACE:
+			keystat.JUMP = False
+		elif key == glfw.KEY_LEFT_SHIFT:
+			keystat.LAND = False
 	return
 
 def cursor_pos_callback(window, xpos, ypos):
