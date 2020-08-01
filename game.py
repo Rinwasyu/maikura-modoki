@@ -27,13 +27,6 @@ block_color = (
 		(0,1,1,1), (1,1,1,1), (0.5,0.5,1,1), (0.5,0,0.5,1)
 	)
 
-player_height = 1.9
-player_speed = 0.01
-player_radius = 0.15 # player_radius <= 1
-player_holding = 1
-player_eyeshot = 12
-player_hand_anim = 0
-
 LOOP_4 = (0, 1, 2, 3)
 LOOP_9 = (0, 1, 2, 3, 4, 5, 6, 7, 8)
 
@@ -45,17 +38,19 @@ class Player:
 		self.vx = 0
 		self.vy = 0
 		self.vz = 0
+		self.eyeshot = 12
+		self.hand_anim = 0
+		self.height = 1.9
+		self.holding = 1
+		self.radius = 0.15 # (player.radius < 1)
+		self.speed = 0.01
 	def tick(self):
-		global keystat, cnt_tick
-		
-		# out of range
-		if self.x < 0 or self.y < 0 or self.z < 0 or self.x >= world_width or self.y >= world_height or self.z >= world_depth:
-			return
+		global keystat, cnt_tick, player
 		
 		self.vx *= 0.5
 		self.vz *= 0.5
-		diff_sin_ry = player_speed * math.sin(ry/180*math.pi)
-		diff_cos_ry = player_speed * math.cos(ry/180*math.pi)
+		diff_sin_ry = player.speed * math.sin(ry/180*math.pi)
+		diff_cos_ry = player.speed * math.cos(ry/180*math.pi)
 		if keystat.FORWARD:
 			self.vx += diff_sin_ry
 			self.vz -= diff_cos_ry
@@ -78,33 +73,32 @@ class Player:
 				self.vy *= -1
 			self.vy -= 0.001
 		
-		global player_hand_anim
-		if player_hand_anim > 0:
-			player_hand_anim -= 1
+		if player.hand_anim > 0:
+			player.hand_anim -= 1
 		if mousestat.LEFT:
-			if player_hand_anim == 0:
+			if player.hand_anim == 0:
 				remove_block()
-				player_hand_anim = 45
+				player.hand_anim = 45
 		elif mousestat.RIGHT:
-			if player_hand_anim == 0:
+			if player.hand_anim == 0:
 				create_block()
-				player_hand_anim = 45
+				player.hand_anim = 45
 		
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
 		next_z = self.z + self.vz
-		if next_x - player_radius < 0 or next_x + player_radius >= world_width:
+		if next_x - player.radius < 0 or next_x + player.radius >= world_width:
 			self.vx = 0
 			next_x = self.x
-		if next_y < 0 or next_y + player_height >= world_height:
+		if next_y < 0 or next_y + player.height >= world_height:
 			self.vy = 0
 			next_y = self.y
-		if next_z - player_radius < 0 or next_z + player_radius >= world_depth:
+		if next_z - player.radius < 0 or next_z + player.radius >= world_depth:
 			self.vz = 0
 			next_z = self.z
 		
-		radius = (-player_radius, player_radius)
-		height = (0, 1, player_height)
+		radius = (-player.radius, player.radius)
+		height = (0, 1, player.height)
 		for i in radius:
 			for j in height:
 				for k in radius:
@@ -156,7 +150,7 @@ def display():
 	glLoadIdentity()
 	glRotated(rx, 1.0, 0.0, 0.0)
 	glRotated(ry, 0.0, 1.0, 0.0)
-	glTranslated(-player.x * block_size, (-player.y-player_height*0.9) * block_size, -player.z * block_size)
+	glTranslated(-player.x * block_size, (-player.y-player.height*0.9) * block_size, -player.z * block_size)
 	light()
 	cloud()
 	scene()
@@ -178,7 +172,7 @@ def light():
 def menu():
 	glPushMatrix()
 	x = player.x + math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
-	y = (player.y+player_height*0.9) - math.sin(rx/180*math.pi) * 0.1
+	y = (player.y+player.height*0.9) - math.sin(rx/180*math.pi) * 0.1
 	z = player.z - math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
 	glTranslated(x * block_size, y * block_size, z * block_size)
 	glRotated(-ry, 0, 1, 0)
@@ -189,7 +183,7 @@ def menu():
 	glPushMatrix()
 	r_x = rx + 19
 	x = player.x+ math.sin(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
-	y = (player.y+player_height*0.9) - math.sin(r_x/180*math.pi) * 0.1
+	y = (player.y+player.height*0.9) - math.sin(r_x/180*math.pi) * 0.1
 	z = player.z - math.cos(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
 	glTranslated(x * block_size, y * block_size, z * block_size)
 	glRotated(-ry, 0, 1, 0)
@@ -201,7 +195,7 @@ def menu():
 		glCallList(list_selectionmenu_block_wireframe)
 		glMaterialfv(GL_FRONT, GL_EMISSION, block_color[i+1])
 		glCallList(list_selectionmenu_block)
-		if player_holding == i+1:
+		if player.holding == i+1:
 			glMaterialfv(GL_FRONT, GL_EMISSION, (1, 1, 1, 1))
 		else:
 			glMaterialfv(GL_FRONT, GL_EMISSION, (0.5,0.5,0.5,1))
@@ -218,13 +212,13 @@ def hand():
 	glPushMatrix()
 	r_x = rx + 30
 	x = player.x+ math.sin(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
-	y = (player.y+player_height*0.9) - math.sin(r_x/180*math.pi) * 0.1
+	y = (player.y+player.height*0.9) - math.sin(r_x/180*math.pi) * 0.1
 	z = player.z - math.cos(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
 	glTranslated(x * block_size, y * block_size, z * block_size)
 	glRotated(-ry, 0, 1, 0)
 	glRotated(-rx, 1, 0, 0)
 	glTranslated(0.06, -0.01, -0.01)
-	glRotated(-20-player_hand_anim, 1, 0, 0)
+	glRotated(-20-player.hand_anim, 1, 0, 0)
 	glRotated(20, 0, 0, 1)
 	glCallList(list_hand)
 	glPopMatrix()
@@ -377,12 +371,12 @@ def update_render():
 	global list_render
 	if list_render:
 		glDeleteLists(list_render, 1)
-	range_x_min = max(0,int(player.x)-player_eyeshot)
-	range_x_max = min(world_width,int(player.x)+player_eyeshot)
+	range_x_min = max(0,int(player.x)-player.eyeshot)
+	range_x_max = min(world_width,int(player.x)+player.eyeshot)
 	range_y_min = 0
 	range_y_max = world_height
-	range_z_min = max(0,int(player.z)-player_eyeshot)
-	range_z_max = min(world_depth,int(player.z)+player_eyeshot)
+	range_z_min = max(0,int(player.z)-player.eyeshot)
+	range_z_max = min(world_depth,int(player.z)+player.eyeshot)
 	LOOP_X = range(range_x_min, range_x_max)
 	LOOP_Y = range(range_y_min, range_y_max)
 	LOOP_Z = range(range_z_min, range_z_max)
@@ -407,14 +401,14 @@ def update_render():
 def create_block():
 	global block
 	x = player.x
-	y = player.y + player_height*0.9
+	y = player.y + player.height*0.9
 	z = player.z
 	step = 0.01
 	diff_x = math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 	diff_y = -math.sin(rx/180*math.pi) * step
 	diff_z = -math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 	distance = 0
-	while distance <= player_eyeshot:
+	while distance <= player.eyeshot:
 		distance += step
 		bx = x
 		by = y
@@ -422,21 +416,21 @@ def create_block():
 		x += diff_x
 		y += diff_y
 		z += diff_z
-		if x-player_radius < 0 or x+player_radius >= world_width\
+		if x-player.radius < 0 or x+player.radius >= world_width\
 				or y < 0 or y >= world_height\
-				or z-player_radius < 0 or z+player_radius >= world_depth:
+				or z-player.radius < 0 or z+player.radius >= world_depth:
 			return
 		if block[int(x)][int(y)][int(z)] > 0:
 			if abs(int(x)+0.5 - bx) < abs(int(z)+0.5 - bz):
 				bx = x
 			else:
 				bz = z
-			if (int(player.x-player_radius) == int(bx) or int(player.x+player_radius) == int(bx))\
-					and int(int(by)-player.y) < player_height and int(int(by)-player.y) >= 0\
-					and (int(player.z-player_radius) == int(bz) or int(player.z+player_radius) == int(bz)):
+			if (int(player.x-player.radius) == int(bx) or int(player.x+player.radius) == int(bx))\
+					and int(int(by)-player.y) < player.height and int(int(by)-player.y) >= 0\
+					and (int(player.z-player.radius) == int(bz) or int(player.z+player.radius) == int(bz)):
 				return
 			else:
-				block[int(bx)][int(by)][int(bz)] = player_holding
+				block[int(bx)][int(by)][int(bz)] = player.holding
 				print("created! (", int(bx), ",", int(by), ",", int(bz), ")")
 				block_visibility[max(0,int(bx)-1)][int(by)][int(bz)] -= 1
 				block_visibility[min(world_width,int(bx)+1)][int(by)][int(bz)] -= 1
@@ -450,14 +444,14 @@ def create_block():
 def remove_block():
 	global block
 	x = player.x
-	y = player.y + player_height*0.9
+	y = player.y + player.height*0.9
 	z = player.z
 	step = 0.01
 	diff_x = math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 	diff_y = -math.sin(rx/180*math.pi) * step
 	diff_z = -math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
 	distance = 0
-	while distance <= player_eyeshot:
+	while distance <= player.eyeshot:
 		distance += step
 		x += diff_x
 		y += diff_y
@@ -486,19 +480,14 @@ def new_world():
 	for i in width:
 		for j in height:
 			for k in depth:
-				if j < 10 or (i + j < 20):
+				if j < 10:
 					block[i][j][k] = int(random.randrange(1,9))
-				if j < 9 or (i + j < 19):
+				if j < 9:
 					block_visibility[i][j][k] = 0
-				elif j == 8:
+				elif j == 9:
 					block_visibility[i][j][k] = 1
 				else:
 					block_visibility[i][j][k] = 6
-	#for i in range(49, 51):
-	#	block[52][1][i] = 0
-	#block[52][3][52] = 5
-	#block[52][2][52] = 5
-	#block[53][2][52] = 5
 	
 	global player
 	player = Player(50, 20, 50)
@@ -539,7 +528,7 @@ def window_refresh_callback(window):
 	return
 
 def key_callback(window, key, scancode, action, mods):
-	global keystat, player_holding
+	global keystat, player
 	if action == glfw.PRESS:
 		if key == glfw.KEY_UP or key == glfw.KEY_W:
 			keystat.FORWARD = True
@@ -565,25 +554,25 @@ def key_callback(window, key, scancode, action, mods):
 		elif key == glfw.KEY_Q: # close window
 			glfw.set_window_should_close(window, GL_TRUE)
 		elif key == glfw.KEY_1:
-			player_holding = 1
+			player.holding = 1
 		elif key == glfw.KEY_2:
-			player_holding = 2
+			player.holding = 2
 		elif key == glfw.KEY_3:
-			player_holding = 3
+			player.holding = 3
 		elif key == glfw.KEY_4:
-			player_holding = 4
+			player.holding = 4
 		elif key == glfw.KEY_5:
-			player_holding = 5
+			player.holding = 5
 		elif key == glfw.KEY_6:
-			player_holding = 6
+			player.holding = 6
 		elif key == glfw.KEY_7:
-			player_holding = 7
+			player.holding = 7
 		elif key == glfw.KEY_8:
-			player_holding = 8
+			player.holding = 8
 		elif key == glfw.KEY_9:
-			player_holding = 9
+			player.holding = 9
 		elif key == glfw.KEY_0:
-			player_holding = 0
+			player.holding = 0
 	elif action == glfw.RELEASE:
 		if key == glfw.KEY_UP or key == glfw.KEY_W:
 			keystat.FORWARD = False
