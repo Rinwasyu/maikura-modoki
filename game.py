@@ -18,7 +18,7 @@ window_width = 800
 window_height = 600
 
 world_width = 100
-world_height = 50
+world_height = 100
 world_depth = 100
 
 block_size = 1
@@ -480,11 +480,11 @@ def new_world():
 	for i in width:
 		for j in height:
 			for k in depth:
-				if j < 10:
+				if j < 20:
 					block[i][j][k] = int(random.randrange(1,9))
-				if j < 9:
+				if j < 19:
 					block_visibility[i][j][k] = 0
-				elif j == 9:
+				elif j == 19:
 					block_visibility[i][j][k] = 1
 				else:
 					block_visibility[i][j][k] = 6
@@ -496,7 +496,7 @@ def cloud():
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.9,0.9,0.9,1))
 	for i in range(0, 5):
 		glPushMatrix()
-		glTranslated(cnt_tick % 200 + (200*(i+1)) - 500, 50, 10)
+		glTranslated(cnt_tick % 200 + (200*(i+1)) - 500, 150, 10)
 		glCallList(list_cloud)
 		glPopMatrix()
 
@@ -643,7 +643,7 @@ def main():
 	glfw.set_mouse_button_callback(window, mouse_button_callback)
 	glfw.make_context_current(window)
 	
-	glClearColor(0.6, 0.6, 1.0, 1.0)
+	glClearColor(0.5, 0.8, 1.0, 1.0)
 	glEnable(GL_DEPTH_TEST)
 	glEnable(GL_CULL_FACE)
 	glCullFace(GL_BACK)
