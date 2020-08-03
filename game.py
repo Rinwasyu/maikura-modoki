@@ -326,17 +326,18 @@ def gen_glList():
 	
 	global list_cloud
 	cv = (
-			(0, 0, 0), (0, 0, -50), (50, 0, -50), (50, 0, 0)
+			(0, 0, 0), (0, 0, -100), (50, 0, -100), (50, 0, 0), (50, 0, -150), (100, 0, -150), (100, 0, 0)
 		)
-	cf = (0, 1, 2, 3)
+	cf = ((0, 1, 2, 3), (3, 4, 5, 6))
 	list_cloud = glGenLists(1)
 	glNewList(list_cloud, GL_COMPILE)
-	glBegin(GL_POLYGON)
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.9,0.9,0.9,1))
 	glMaterialfv(GL_FRONT, GL_AMBIENT, (0.9,0.9,0.9,1))
 	for i in range(len(cf)):
-		glVertex3dv(cv[cf[i]])
-	glEnd()
+		glBegin(GL_QUADS)
+		for j in range(4):
+			glVertex3dv(cv[cf[i][j]])
+		glEnd()
 	glEndList()
 	
 	global list_hand
