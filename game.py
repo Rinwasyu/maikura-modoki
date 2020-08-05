@@ -21,6 +21,13 @@ world_width = 100
 world_height = 100
 world_depth = 100
 
+light0_position = [100,80,100,1]
+light0_diffuse = [1.0, 1.0, 1.0, 1.0]
+light0_ambient = [0.3, 0.3, 0.3, 0.3]
+light1_position = [100,100,-60,1]
+light1_diffuse = [0.2, 0.2, 0.2, 0.2]
+light1_ambient = [0, 0, 0, 0]
+
 block_size = 1
 block_color = (
 		(0,0,0,0), (1,0,0,1), (0,1,0,1), (0.2,0.2,1,1), (1,1,0,1), (1,0,1,1),
@@ -49,8 +56,8 @@ class Player:
 		
 		self.vx *= 0.5
 		self.vz *= 0.5
-		diff_sin_ry = player.speed * math.sin(ry/180*math.pi)
-		diff_cos_ry = player.speed * math.cos(ry/180*math.pi)
+		diff_sin_ry = player.speed * math.sin(ry*math.pi/180)
+		diff_cos_ry = player.speed * math.cos(ry*math.pi/180)
 		if keystat.FORWARD:
 			self.vx += diff_sin_ry
 			self.vz -= diff_cos_ry
@@ -160,20 +167,20 @@ def display():
 	glfw.swap_buffers(window)
 
 def light():
-	glLightfv(GL_LIGHT0, GL_POSITION, (100,80,100,1))
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0))
-	glLightfv(GL_LIGHT0, GL_AMBIENT, (0.3, 0.3, 0.3, 0.3))
-	glLightfv(GL_LIGHT0, GL_SPECULAR, (0.1, 0.1, 0.1, 1.0))
-	glLightfv(GL_LIGHT1, GL_POSITION, (100,100,-60,1))
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.2, 0.2, 0.2, 0.2))
-	glLightfv(GL_LIGHT1, GL_AMBIENT, (0, 0, 0, 0))
-	glLightfv(GL_LIGHT1, GL_SPECULAR, (0, 0, 0, 0))
+	glLightfv(GL_LIGHT0, GL_POSITION, light0_position)
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse)
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient)
+	#glLightfv(GL_LIGHT0, GL_SPECULAR, (0.1, 0.1, 0.1, 1.0))
+	glLightfv(GL_LIGHT1, GL_POSITION, light1_position)
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse)
+	glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient)
+	#glLightfv(GL_LIGHT1, GL_SPECULAR, (0, 0, 0, 0))
 
 def menu():
 	glPushMatrix()
-	x = player.x + math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
-	y = (player.y+player.height*0.9) - math.sin(rx/180*math.pi) * 0.1
-	z = player.z - math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * 0.1
+	x = player.x + math.sin(ry*math.pi/180) * math.cos(rx*math.pi/180) * 0.1
+	y = (player.y+player.height*0.9) - math.sin(rx*math.pi/180) * 0.1
+	z = player.z - math.cos(ry*math.pi/180) * math.cos(rx*math.pi/180) * 0.1
 	glTranslated(x * block_size, y * block_size, z * block_size)
 	glRotated(-ry, 0, 1, 0)
 	glRotated(-rx, 1, 0, 0)
@@ -182,9 +189,9 @@ def menu():
 	
 	glPushMatrix()
 	r_x = rx + 19
-	x = player.x+ math.sin(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
-	y = (player.y+player.height*0.9) - math.sin(r_x/180*math.pi) * 0.1
-	z = player.z - math.cos(ry/180*math.pi) * math.cos(r_x/180*math.pi) * 0.1
+	x = player.x+ math.sin(ry*math.pi/180) * math.cos(r_x*math.pi/180) * 0.1
+	y = (player.y+player.height*0.9) - math.sin(r_x*math.pi/180) * 0.1
+	z = player.z - math.cos(ry*math.pi/180) * math.cos(r_x*math.pi/180) * 0.1
 	glTranslated(x * block_size, y * block_size, z * block_size)
 	glRotated(-ry, 0, 1, 0)
 	glRotated(-rx, 1, 0, 0)
@@ -223,6 +230,16 @@ def hand():
 	glCallList(list_hand)
 	glPopMatrix()
 
+def draw_object(vertices, faces, normals, primitive):
+	face_n = len(faces)
+	for i in range(face_n):
+		glBegin(primitive)
+		if normals:
+			glNormal3dv(normals[i])
+		for j in LOOP_4:
+			glVertex3dv(vertices[faces[i][j]])
+		glEnd()
+
 def gen_glList():
 	global list_block
 	# block
@@ -238,22 +255,9 @@ def gen_glList():
 		)
 	list_block = glGenLists(1)
 	glNewList(list_block, GL_COMPILE)
-	bf_n = len(bf)
-	for i in range(bf_n):
-		glBegin(GL_POLYGON)
-		glNormal3dv(bn[i])
-		for j in LOOP_4:
-			glVertex3dv(bv[bf[i][j]])
-		glEnd()
-	
+	draw_object(bv, bf, bn, GL_POLYGON)
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0,0,0))
-	bf_n = len(bf)
-	for i in range(bf_n):
-		glBegin(GL_LINE_LOOP)
-		glNormal3dv(bn[i])
-		for j in LOOP_4:
-			glVertex3dv(bv[bf[i][j]])
-		glEnd()
+	draw_object(bv, bf, bn, GL_LINE_LOOP)
 	glEndList()
 	
 	# "+"
@@ -269,12 +273,7 @@ def gen_glList():
 			(0, 1, 2, 3), (3, 4, 5, 6), (6, 7, 8, 9), (9, 10, 11, 0)
 		)
 	glMaterialfv(GL_FRONT, GL_EMISSION, (1,1,1,1))
-	glBegin(GL_POLYGON)
-	pf_n = len(pf)
-	for i in range(pf_n):
-		for j in LOOP_4:
-			glVertex3dv(pv[pf[i][j]])
-	glEnd()
+	draw_object(pv, pf, None, GL_POLYGON)
 	glMaterialfv(GL_FRONT, GL_EMISSION, (0,0,0,0))
 	glEndList()
 	
@@ -287,12 +286,7 @@ def gen_glList():
 	sf = (
 			(0, 1, 2, 3), (0, 1, 2, 3)
 		)
-	glBegin(GL_POLYGON)
-	sf_n = len(sf)
-	for i in range(sf_n):
-		for j in LOOP_4:
-			glVertex3dv(sv[sf[i][j]])
-	glEnd()
+	draw_object(sv, sf, None, GL_POLYGON)
 	glEndList()
 	
 	global list_selectionmenu_block
@@ -305,23 +299,13 @@ def gen_glList():
 	mbf = (
 			(0, 1, 2, 3), (0, 3, 6, 4), (0, 4, 5, 1)
 		)
-	glBegin(GL_POLYGON)
-	mbf_n = len(mbf)
-	for i in range(mbf_n):
-		for j in LOOP_4:
-			glVertex3dv(mbv[mbf[i][j]])
-	glEnd()
+	draw_object(mbv, mbf, None, GL_POLYGON)
 	glEndList()
 	
 	global list_selectionmenu_block_wireframe
 	list_selectionmenu_block_wireframe = glGenLists(1)
 	glNewList(list_selectionmenu_block_wireframe, GL_COMPILE)
-	glBegin(GL_LINE_LOOP)
-	mbf_n = len(mbf)
-	for i in range(mbf_n):
-		for j in LOOP_4:
-			glVertex3dv(mbv[mbf[i][j]])
-	glEnd()
+	draw_object(mbv, mbf, None, GL_LINE_LOOP)
 	glEndList()
 	
 	global list_cloud
@@ -333,11 +317,7 @@ def gen_glList():
 	glNewList(list_cloud, GL_COMPILE)
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.9,0.9,0.9,1))
 	glMaterialfv(GL_FRONT, GL_AMBIENT, (0.9,0.9,0.9,1))
-	for i in range(len(cf)):
-		glBegin(GL_QUADS)
-		for j in range(4):
-			glVertex3dv(cv[cf[i][j]])
-		glEnd()
+	draw_object(cv, cf, None, GL_QUADS)
 	glEndList()
 	
 	global list_hand
@@ -354,12 +334,7 @@ def gen_glList():
 			(0, -1, 0), (0, 1, 0), (-1, 0, 0), (0, 0, -1), (1, 0, 0), (0, 0, 1)
 		)
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.5, 0.5, 0.5, 1))
-	for i in range(len(hf)):
-		glBegin(GL_POLYGON)
-		glNormal3dv(hn[i])
-		for j in LOOP_4:
-			glVertex3dv(hv[hf[i][j]])
-		glEnd()
+	draw_object(hv, hf, hn, GL_POLYGON)
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, (0, 0, 0, 0))
 	glEndList()
 	
@@ -405,9 +380,9 @@ def create_block():
 	y = player.y + player.height*0.9
 	z = player.z
 	step = 0.01
-	diff_x = math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-	diff_y = -math.sin(rx/180*math.pi) * step
-	diff_z = -math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+	diff_x = math.sin(ry*math.pi/180) * math.cos(rx*math.pi/180) * step
+	diff_y = -math.sin(rx*math.pi/180) * step
+	diff_z = -math.cos(ry*math.pi/180) * math.cos(rx*math.pi/180) * step
 	distance = 0
 	while distance <= player.eyeshot:
 		distance += step
@@ -448,9 +423,9 @@ def remove_block():
 	y = player.y + player.height*0.9
 	z = player.z
 	step = 0.01
-	diff_x = math.sin(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
-	diff_y = -math.sin(rx/180*math.pi) * step
-	diff_z = -math.cos(ry/180*math.pi) * math.cos(rx/180*math.pi) * step
+	diff_x = math.sin(ry*math.pi/180) * math.cos(rx*math.pi/180) * step
+	diff_y = -math.sin(rx*math.pi/180) * step
+	diff_z = -math.cos(ry*math.pi/180) * math.cos(rx*math.pi/180) * step
 	distance = 0
 	while distance <= player.eyeshot:
 		distance += step
