@@ -409,11 +409,11 @@ def create_block():
 				block[int(bx)][int(by)][int(bz)] = player.holding
 				print("created! (", int(bx), ",", int(by), ",", int(bz), ")")
 				block_visibility[max(0,int(bx)-1)][int(by)][int(bz)] -= 1
-				block_visibility[min(world_width,int(bx)+1)][int(by)][int(bz)] -= 1
+				block_visibility[min(world_width-1,int(bx)+1)][int(by)][int(bz)] -= 1
 				block_visibility[int(bx)][max(0,int(by)-1)][int(bz)] -= 1
-				block_visibility[int(bx)][min(world_height,int(by)+1)][int(bz)] -= 1
+				block_visibility[int(bx)][min(world_height-1,int(by)+1)][int(bz)] -= 1
 				block_visibility[int(bx)][int(by)][max(0,int(bz)-1)] -= 1
-				block_visibility[int(bx)][int(by)][min(world_depth,int(bz)+1)] -= 1
+				block_visibility[int(bx)][int(by)][min(world_depth-1,int(bz)+1)] -= 1
 				update_render()
 			return
 
@@ -438,11 +438,11 @@ def remove_block():
 			block[int(x)][int(y)][int(z)] = 0
 			print("removed (", int(x), ",", int(y), ",", int(z), ")")
 			block_visibility[max(0,int(x)-1)][int(y)][int(z)] += 1
-			block_visibility[min(world_width,int(x)+1)][int(y)][int(z)] += 1
+			block_visibility[min(world_width-1,int(x)+1)][int(y)][int(z)] += 1
 			block_visibility[int(x)][max(0,int(y)-1)][int(z)] += 1
-			block_visibility[int(x)][min(world_height,int(y)+1)][int(z)] += 1
+			block_visibility[int(x)][min(world_height-1,int(y)+1)][int(z)] += 1
 			block_visibility[int(x)][int(y)][max(0,int(z)-1)] += 1
-			block_visibility[int(x)][int(y)][min(world_depth,int(z)+1)] += 1
+			block_visibility[int(x)][int(y)][min(world_depth-1,int(z)+1)] += 1
 			update_render()
 			return
 
