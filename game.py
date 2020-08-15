@@ -21,13 +21,6 @@ world_width = 100
 world_height = 100
 world_depth = 100
 
-light0_position = [100,80,100,1]
-light0_diffuse = [1.0, 1.0, 1.0, 1.0]
-light0_ambient = [0.3, 0.3, 0.3, 0.3]
-light1_position = [100,100,-60,1]
-light1_diffuse = [0.2, 0.2, 0.2, 0.2]
-light1_ambient = [0, 0, 0, 0]
-
 block_size = 1
 block_color = (
 		(0,0,0,0), (1,0,0,1), (0,1,0,1), (0.2,0.2,1,1), (1,1,0,1), (1,0,1,1),
@@ -167,14 +160,18 @@ def display():
 	glfw.swap_buffers(window)
 
 def light():
+	light0_position = [100,80,100,1]
+	light0_diffuse = [1.0, 1.0, 1.0, 1.0]
+	light0_ambient = [0.3, 0.3, 0.3, 0.3]
+	light1_position = [100,100,-60,1]
+	light1_diffuse = [0.2, 0.2, 0.2, 0.2]
+	light1_ambient = [0, 0, 0, 0]
 	glLightfv(GL_LIGHT0, GL_POSITION, light0_position)
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse)
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient)
-	#glLightfv(GL_LIGHT0, GL_SPECULAR, (0.1, 0.1, 0.1, 1.0))
 	glLightfv(GL_LIGHT1, GL_POSITION, light1_position)
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse)
 	glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient)
-	#glLightfv(GL_LIGHT1, GL_SPECULAR, (0, 0, 0, 0))
 
 def menu():
 	glPushMatrix()
@@ -374,6 +371,14 @@ def update_render():
 	glMaterialfv(GL_FRONT, GL_AMBIENT, (0, 0, 0, 0))
 	glEndList()
 
+def add_block_visibility(x, y, z, v):
+	block_visibility[max(0,x-1)][y][z] += v
+	block_visibility[min(world_width-1,x+1)][y][z] += v
+	block_visibility[x][max(0,y-1)][z] += v
+	block_visibility[x][min(world_height-1,y+1)][z] += v
+	block_visibility[x][y][max(0,z-1)] += v
+	block_visibility[x][y][min(world_depth-1,z+1)] += v
+
 def create_block():
 	global block
 	x = player.x
@@ -408,12 +413,7 @@ def create_block():
 			else:
 				block[int(bx)][int(by)][int(bz)] = player.holding
 				print("created! (", int(bx), ",", int(by), ",", int(bz), ")")
-				block_visibility[max(0,int(bx)-1)][int(by)][int(bz)] -= 1
-				block_visibility[min(world_width-1,int(bx)+1)][int(by)][int(bz)] -= 1
-				block_visibility[int(bx)][max(0,int(by)-1)][int(bz)] -= 1
-				block_visibility[int(bx)][min(world_height-1,int(by)+1)][int(bz)] -= 1
-				block_visibility[int(bx)][int(by)][max(0,int(bz)-1)] -= 1
-				block_visibility[int(bx)][int(by)][min(world_depth-1,int(bz)+1)] -= 1
+				add_block_visibility(int(bx), int(by), int(bz), -1)
 				update_render()
 			return
 
@@ -437,12 +437,7 @@ def remove_block():
 		if block[int(x)][int(y)][int(z)] > 0:
 			block[int(x)][int(y)][int(z)] = 0
 			print("removed (", int(x), ",", int(y), ",", int(z), ")")
-			block_visibility[max(0,int(x)-1)][int(y)][int(z)] += 1
-			block_visibility[min(world_width-1,int(x)+1)][int(y)][int(z)] += 1
-			block_visibility[int(x)][max(0,int(y)-1)][int(z)] += 1
-			block_visibility[int(x)][min(world_height-1,int(y)+1)][int(z)] += 1
-			block_visibility[int(x)][int(y)][max(0,int(z)-1)] += 1
-			block_visibility[int(x)][int(y)][min(world_depth-1,int(z)+1)] += 1
+			add_block_visibility(int(x), int(y), int(z), 1)
 			update_render()
 			return
 
