@@ -2,6 +2,8 @@
 # Copyright (c) 2020 Rinwasyu
 # 
 # https://github.com/Rinwasyu/maikura-modoki
+# 
+# Q: Exit, SPACE: Jump, Up-Down-Left-Right or W-A-S-D: Move, 1~9: Select a block color
 
 import glfw
 from OpenGL.GL import *
@@ -9,24 +11,19 @@ from OpenGL.GLU import *
 import math
 import random
 
-
 cnt_tick = 0
 ry = 0
 rx = 90
-
 window_width = 800
 window_height = 600
-
 world_width = 100
 world_height = 100
 world_depth = 100
-
 block_size = 1
 block_color = (
 		(0,0,0,0), (1,0,0,1), (0,1,0,1), (0.2,0.2,1,1), (1,1,0,1), (1,0,1,1),
 		(0,1,1,1), (1,1,1,1), (0.5,0.5,1,1), (0.5,0,0.5,1)
 	)
-
 LOOP_4 = (0, 1, 2, 3)
 LOOP_9 = (0, 1, 2, 3, 4, 5, 6, 7, 8)
 
@@ -42,15 +39,15 @@ class Player:
 		self.hand_anim = 0
 		self.height = 1.9
 		self.holding = 1
-		self.radius = 0.15 # (player.radius < 1)
+		self.radius = 0.15 # (sel.radius < 1)
 		self.speed = 0.01
 	def tick(self):
-		global keystat, cnt_tick, player
+		global keystat, cnt_tick
 		
 		self.vx *= 0.5
 		self.vz *= 0.5
-		diff_sin_ry = player.speed * math.sin(ry*math.pi/180)
-		diff_cos_ry = player.speed * math.cos(ry*math.pi/180)
+		diff_sin_ry = self.speed * math.sin(ry*math.pi/180)
+		diff_cos_ry = self.speed * math.cos(ry*math.pi/180)
 		if keystat.FORWARD:
 			self.vx += diff_sin_ry
 			self.vz -= diff_cos_ry
@@ -73,32 +70,32 @@ class Player:
 				self.vy *= -1
 			self.vy -= 0.001
 		
-		if player.hand_anim > 0:
-			player.hand_anim -= 1
+		if self.hand_anim > 0:
+			self.hand_anim -= 1
 		if mousestat.LEFT:
-			if player.hand_anim == 0:
+			if self.hand_anim == 0:
 				remove_block()
-				player.hand_anim = 45
+				self.hand_anim = 45
 		elif mousestat.RIGHT:
-			if player.hand_anim == 0:
+			if self.hand_anim == 0:
 				create_block()
-				player.hand_anim = 45
+				self.hand_anim = 45
 		
 		next_x = self.x + self.vx
 		next_y = self.y + self.vy
 		next_z = self.z + self.vz
-		if next_x - player.radius < 0 or next_x + player.radius >= world_width:
+		if next_x - self.radius < 0 or next_x + self.radius >= world_width:
 			self.vx = 0
 			next_x = self.x
-		if next_y < 0 or next_y + player.height >= world_height:
+		if next_y < 0 or next_y + self.height >= world_height:
 			self.vy = 0
 			next_y = self.y
-		if next_z - player.radius < 0 or next_z + player.radius >= world_depth:
+		if next_z - self.radius < 0 or next_z + self.radius >= world_depth:
 			self.vz = 0
 			next_z = self.z
 		
-		radius = (-player.radius, player.radius)
-		height = (0, 1, player.height)
+		radius = (-self.radius, self.radius)
+		height = (0, 1, self.height)
 		for i in radius:
 			for j in height:
 				for k in radius:
@@ -542,8 +539,6 @@ def key_callback(window, key, scancode, action, mods):
 			player.holding = 8
 		elif key == glfw.KEY_9:
 			player.holding = 9
-		elif key == glfw.KEY_0:
-			player.holding = 0
 	elif action == glfw.RELEASE:
 		if key == glfw.KEY_UP or key == glfw.KEY_W:
 			keystat.FORWARD = False
