@@ -104,25 +104,46 @@ class Player:
 					if block[int(next_x + i)][int(self.y + j)][int(self.z + k)] > 0:
 						self.vx = 0
 						next_x = self.x
+						break
+				else:
+					continue
+				break
+			else:
+				continue
+			break
 		for i in radius:
 			for j in height:
 				for k in radius:
 					if block[int(next_x + i)][int(next_y + j)][int(self.z + k)] > 0:
 						self.vy = 0
 						next_y = self.y
+						break
+				else:
+					continue
+				break
+			else:
+				continue
+			break
 		for i in radius:
 			for j in height:
 				for k in radius:
 					if block[int(next_x + i)][int(next_y + j)][int(next_z + k)] > 0:
 						self.vz = 0
 						next_z = self.z
+						break
+				else:
+					continue
+				break
+			else:
+				continue
+			break
 		
 		self.x += self.vx
 		self.y += self.vy
 		self.z += self.vz
 		
 		if int(self.x) != int(self.x-self.vx)\
-				or int(self.y) != int(self.y-self.vy):
+				or int(self.z) != int(self.z-self.vz):
 			update_render()
 		
 		cnt_tick += 1
@@ -624,7 +645,7 @@ def main():
 	display()
 
 	while not glfw.window_should_close(window):
-		glfw.wait_events_timeout(1e-3)
+		glfw.poll_events()
 		update()
 
 	glfw.terminate()
