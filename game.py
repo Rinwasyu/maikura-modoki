@@ -11,6 +11,7 @@ from OpenGL.GLU import *
 import math
 import random
 
+tune_speedup = 1.0
 cnt_tick = 0
 ry = 0
 rx = 90
@@ -39,8 +40,9 @@ class Player:
 		self.hand_anim = 0
 		self.height = 1.9
 		self.holding = 1
-		self.radius = 0.15 # (sel.radius < 1)
-		self.speed = 0.01
+		self.radius = 0.15 # (self.radius < 1)
+		self.speed = 0.01 * tune_speedup
+		self.jumpspeed = 0.025
 	def tick(self):
 		global keystat, cnt_tick
 		
@@ -61,7 +63,7 @@ class Player:
 			self.vx += diff_cos_ry
 			self.vz += diff_sin_ry
 		if keystat.JUMP:
-			self.vy = 0.025
+			self.vy = self.jumpspeed
 			keystat.JUMP = False
 		else:
 			self.vy -= 0.0003
@@ -120,8 +122,7 @@ class Player:
 		self.z += self.vz
 		
 		if int(self.x) != int(self.x-self.vx)\
-				or int(self.y) != int(self.y-self.vy)\
-				or int(self.z) != int(self.z-self.vz):
+				or int(self.y) != int(self.y-self.vy):
 			update_render()
 		
 		cnt_tick += 1
