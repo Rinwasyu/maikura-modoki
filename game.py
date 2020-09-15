@@ -645,7 +645,7 @@ def main():
 	display()
 
 	while not glfw.window_should_close(window):
-		glfw.poll_events()
+		glfw.wait_events_timeout(1e-3)
 		update()
 
 	glfw.terminate()
